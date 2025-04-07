@@ -48,7 +48,7 @@ protected:
   }
   // Convert from address to bit offset.
   size_t addr_to_offset(const HeapWord* addr) const {
-    SanitizerGCMapper::remapAddress(addr);
+    // SanitizerGCMapper::remapAddress(addr);
     return pointer_delta(addr, _covered.start()) >> _shifter;
   }
 

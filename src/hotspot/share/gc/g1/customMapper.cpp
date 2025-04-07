@@ -3,6 +3,8 @@
 ptrdiff_t SanitizerGCMapper::movedRegionOffset = 0;
 const void* SanitizerGCMapper::movedRegionStart = nullptr;
 const void* SanitizerGCMapper::movedRegionEnd = nullptr;
+const void* SanitizerGCMapper::originalRegionStart = nullptr;
+const void* SanitizerGCMapper::originalRegionEnd = nullptr;
 
 // Since we can't use void* for pointer arithmetic, we need another pointer
 // type, whose base element size is the unit for movedRegionOffset. We must use
@@ -12,21 +14,32 @@ const void* SanitizerGCMapper::movedRegionEnd = nullptr;
 using byte_ptr = const char*;
 
 void SanitizerGCMapper::initializeMapping(const void* originalRegionStart,
-        const void* movedRegionStart, const void* movedRegionEnd) {
+        const void* originalRegionEnd, const void* movedRegionStart, const void* movedRegionEnd) {
     SanitizerGCMapper::movedRegionOffset =
             static_cast<byte_ptr>(originalRegionStart) -
             static_cast<byte_ptr>(movedRegionStart);
     SanitizerGCMapper::movedRegionStart = movedRegionStart;
     SanitizerGCMapper::movedRegionEnd = movedRegionEnd;
+    SanitizerGCMapper::originalRegionStart = originalRegionStart;
+    SanitizerGCMapper::originalRegionEnd = originalRegionEnd;
 }
 
 const void* SanitizerGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     if (movedRegionOffset != 0 &&
-            newAddr >= movedRegionStart && newAddr < movedRegionEnd) {
+            newAddr >= movedRegionStart && newAddr <= movedRegionEnd) { // TODO
         return static_cast<byte_ptr>(newAddr) + movedRegionOffset;
     }
 
     return newAddr;
+}
+
+const void* SanitizerGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr) {
+    if (movedRegionOffset != 0 &&
+            originalAddr >= originalRegionStart && originalAddr <= originalRegionEnd) {
+        return static_cast<byte_ptr>(originalAddr) - movedRegionOffset;
+            }
+
+    return originalAddr;
 }
 
 void SanitizerGCMapper::testPrint(void* newAddr) {

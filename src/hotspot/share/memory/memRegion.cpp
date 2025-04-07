@@ -26,6 +26,9 @@
 #include "memory/allocation.hpp"
 #include "memory/allocation.inline.hpp"
 #include "memory/memRegion.hpp"
+
+#include <gc/g1/customMapper.hpp>
+
 #include "runtime/globals.hpp"
 
 // A very simple data structure representing a contiguous word-aligned
@@ -33,8 +36,18 @@
 
 MemRegion MemRegion::intersection(const MemRegion mr2) const {
   MemRegion res;
-  HeapWord* res_start = MAX2(start(), mr2.start());
-  HeapWord* res_end   = MIN2(end(),   mr2.end());
+
+  HeapWord* this_start = start();
+  HeapWord* mr2_start = mr2.start();
+  HeapWord* this_end = end();
+  HeapWord* mr2_end = mr2.end();
+  SanitizerGCMapper::remapAddress(this_start);
+  SanitizerGCMapper::remapAddress(mr2_start);
+  SanitizerGCMapper::remapAddress(this_end);
+  SanitizerGCMapper::remapAddress(mr2_end);
+
+  HeapWord* res_start = MAX2(this_start, mr2_start);
+  HeapWord* res_end   = MIN2(this_end,   mr2_end);
   if (res_start < res_end) {
     res.set_start(res_start);
     res.set_end(res_end);

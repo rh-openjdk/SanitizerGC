@@ -118,13 +118,13 @@ G1HeapRegion* HeapRegionManager::allocate_free_region(HeapRegionType type, uint 
 
   if (SanitizeGC) {
     // SANITIZER, printing of bottom, top and end
-    printf("index: %d, _bottom: %p, _top: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->top(), hr->end());
+    printf("REGION WITH INDEX: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
 
     // SANITIZER, moving the first region to different address
     if (!wasFirstTaken) {
       hr->move_this_region();
-      printf("region with index %d was moved here:\n", hr->hrm_index());
-      printf("    index: %d, _bottom: %p, _top: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->top(), hr->end());
+      printf("    %d was moved here:\n", hr->hrm_index());
+      printf("    index: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
 
       wasFirstTaken = true;
     }
@@ -716,19 +716,21 @@ void HeapRegionManager::verify() {
     num_committed++;
     G1HeapRegion* hr = _regions.get_by_index(i);
     guarantee(hr != nullptr, "invariant: i: %u", i);
-    guarantee(!prev_committed || hr->bottom() == prev_end,
+    HeapWord* hr_bottom = hr->bottom();
+    SanitizerGCMapper::remapAddress(hr_bottom);
+    guarantee(!prev_committed || hr_bottom == prev_end,
               "invariant i: %u " HR_FORMAT " prev_end: " PTR_FORMAT,
               i, HR_FORMAT_PARAMS(hr), p2i(prev_end));
     guarantee(hr->hrm_index() == i,
               "invariant: i: %u hrm_index(): %u", i, hr->hrm_index());
     // Asserts will fire if i is >= _length
-    HeapWord* addr = hr->bottom();
-    guarantee(addr_to_region(addr) == hr, "sanity");
+    guarantee(addr_to_region(hr_bottom) == hr, "sanity");
     // We cannot check whether the region is part of a particular set: at the time
     // this method may be called, we have only completed allocation of the regions,
     // but not put into a region set.
     prev_committed = true;
     prev_end = hr->end();
+    SanitizerGCMapper::remapAddress(prev_end);
   }
   for (uint i = _allocated_heapregions_length; i < reserved_length(); i++) {
     guarantee(_regions.get_by_index(i) == nullptr, "invariant i: %u", i);

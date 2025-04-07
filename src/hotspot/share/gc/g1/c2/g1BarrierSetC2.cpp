@@ -485,7 +485,7 @@ void G1BarrierSetC2::post_barrier(GraphKit* kit,
         Node* mapped;
         if (SanitizeGC) {
           mapped = __ make_leaf_call(mapNewAddrToOriginalAddr_Type(), CAST_FROM_FN_PTR(address,
-            SanitizerGCMapper::mapNewAddrToOriginalAddr), "mapNewAddrToOriginalAddr", card_adr)->in(0);
+            SanitizerGCMapper::mapNewAddrToOriginalAddr), "mapNewAddrToOriginalAddr", card_adr)->in(0);//->lookup(3); SANITIZE TODO
         } else {
           mapped = card_adr;
         }

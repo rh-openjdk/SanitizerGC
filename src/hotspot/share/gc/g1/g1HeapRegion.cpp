@@ -76,7 +76,7 @@ void G1HeapRegion::move_this_region() {
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
-  SanitizerGCMapper::initializeMapping(_bottom, new_bottom, new_end);
+  SanitizerGCMapper::initializeMapping(_bottom, _end, new_bottom, new_end);
   _bottom = new_bottom;
   _top = new_bottom;
   _end = new_end;
