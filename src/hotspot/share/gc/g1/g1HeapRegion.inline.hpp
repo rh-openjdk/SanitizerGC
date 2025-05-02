@@ -115,7 +115,7 @@ inline bool G1HeapRegion::is_in_parsable_area(const void* const addr) const {
 }
 
 inline bool G1HeapRegion::is_in_parsable_area(const void* const addr, const void* const pb) {
-  return addr >= pb;
+  return addr >= pb || (addr >= SanitizerGCMapper::movedRegionStart && addr <= SanitizerGCMapper::movedRegionEnd);
 }
 
 inline bool G1HeapRegion::is_marked_in_bitmap(oop obj) const {
