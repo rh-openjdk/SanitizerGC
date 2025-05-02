@@ -82,6 +82,69 @@ void G1HeapRegion::move_this_region() {
   _end = new_end;
 }
 
+class PrintG1HeapRegionInfoClosure : public HeapRegionClosure {
+public:
+  bool do_heap_region(G1HeapRegion* hr) override {
+    uint index = hr->hrm_index();
+    HeapWord* bottom = hr->bottom();
+    HeapWord* top = hr->top();
+    HeapWord* end = hr->end();
+
+    printf("----------  %p  ----------\n", bottom);
+    printf("|    hrm_index:  %d       \n", index);
+    printf("|    current top:  %p     \n", top);
+    printf("| is young: %d, is eden: %d, is old: %d, is survivor: %d\n", hr->is_young(), hr->is_eden(), hr->is_old(), hr->is_survivor());
+    printf("----------  %p  ----------\n\n", end);
+    return false;
+  }
+};
+
+void printMemoryRegionMap() {
+  G1CollectedHeap *heap = G1CollectedHeap::heap();
+
+  const void * originalStart = SanitizerGCMapper::originalRegionStart;
+  const void * originalEnd   = SanitizerGCMapper::originalRegionEnd;
+  const void * movedStart = SanitizerGCMapper::movedRegionStart;
+  const void * movedEnd   = SanitizerGCMapper::movedRegionEnd;
+
+  HeapWord * firstRegionBottom = heap->region_at(0)->bottom();
+
+  if (reinterpret_cast<const char *>(originalStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("----------  %p  ----------\n", originalStart);
+    printf("|    MOVED original       \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
+    printf("----------  %p  ----------\n\n", originalEnd);
+    printf("   ...\n\n");
+  }
+
+  if (reinterpret_cast<const char *>(movedStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("----------  %p  ----------\n", movedStart);
+    printf("|    MOVED new            \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
+    printf("----------  %p  ----------\n\n", movedEnd);
+    printf("   ...\n\n");
+  }
+
+  PrintG1HeapRegionInfoClosure customClosure;
+  heap->heap_region_iterate(&customClosure);
+
+  if (reinterpret_cast<const char *>(originalStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("   ...\n\n");
+    printf("----------  %p  ----------\n", originalStart);
+    printf("|    MOVED original       \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
+    printf("----------  %p  ----------\n\n", originalEnd);
+  }
+
+  if (reinterpret_cast<const char *>(movedStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("   ...\n\n");
+    printf("----------  %p  ----------\n", movedStart);
+    printf("|    MOVED new            \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
+    printf("----------  %p  ----------\n\n", movedEnd);
+  }
+}
+
 size_t G1HeapRegion::max_region_size() {
   return HeapRegionBounds::max_size();
 }
@@ -624,6 +687,20 @@ class G1VerifyLiveAndRemSetClosure : public BasicOopIterateClosure {
     bool failed() const {
       if (_from != _to && !_from->is_young() && _to->rem_set()->is_complete()) {
         const CardValue dirty = G1CardTable::dirty_card_val();
+
+        if (SanitizeGC) {
+          printf("  - !( %d || ( %d ? %d : (%d || %d) ) )\n", _to->rem_set()->contains_reference(this->_p), this->_containing_obj->is_objArray(), (_cv_field == dirty), (_cv_obj == dirty), (_cv_field == dirty));
+        }
+
+        bool condition = !(_to->rem_set()->contains_reference(this->_p) ||
+                 (this->_containing_obj->is_objArray() ?
+                  _cv_field == dirty :
+                  _cv_obj == dirty || _cv_field == dirty));
+
+        if (SanitizeGC && condition) {
+          printf("SANITIZE"); // breakpoint catcher
+        }
+
         return !(_to->rem_set()->contains_reference(this->_p) ||
                  (this->_containing_obj->is_objArray() ?
                   _cv_field == dirty :

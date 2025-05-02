@@ -6,13 +6,16 @@
 
 class SanitizerGCMapper {
 private:
+    // TODO, put the public variables back here
+
+public:
     static ptrdiff_t movedRegionOffset;
     static const void* movedRegionStart;
     static const void* movedRegionEnd;
     static const void* originalRegionStart;
     static const void* originalRegionEnd;
 
-public:
+
     static void initializeMapping(const void* originalRegionStart,
             const void* originalRegionEnd, const void* movedRegionStart, const void* movedRegionEnd);
     static const void* mapNewAddrToOriginalAddr(const void* newAddr);
