@@ -1053,7 +1053,7 @@ public:
   }
 
   bool is_in_reserved(const void* addr) const {
-    SanitizerGCMapper::remapAddress(addr);
+    SanitizeGCMapper::remapAddress(addr);
     return reserved().contains(addr);
   }
 

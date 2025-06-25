@@ -34,7 +34,7 @@
 #include "oops/oop.inline.hpp"
 
 inline HeapWord* G1BlockOffsetTable::block_start_reaching_into_card(const void* addr) const {
-  SanitizerGCMapper::remapAddress(addr);
+  SanitizeGCMapper::remapAddress(addr);
   assert(_reserved.contains(addr), "invalid address");
 
   uint8_t* entry = entry_for_addr(addr);

@@ -1,10 +1,10 @@
 #include "sanitizeAddressMapper.hpp"
 
-ptrdiff_t SanitizerGCMapper::movedRegionOffset = 0;
-const void* SanitizerGCMapper::movedRegionStart = nullptr;
-const void* SanitizerGCMapper::movedRegionEnd = nullptr;
-const void* SanitizerGCMapper::originalRegionStart = nullptr;
-const void* SanitizerGCMapper::originalRegionEnd = nullptr;
+ptrdiff_t SanitizeGCMapper::movedRegionOffset = 0;
+const void* SanitizeGCMapper::movedRegionStart = nullptr;
+const void* SanitizeGCMapper::movedRegionEnd = nullptr;
+const void* SanitizeGCMapper::originalRegionStart = nullptr;
+const void* SanitizeGCMapper::originalRegionEnd = nullptr;
 
 // Since we can't use void* for pointer arithmetic, we need another pointer
 // type, whose base element size is the unit for movedRegionOffset. We must use
@@ -13,18 +13,18 @@ const void* SanitizerGCMapper::originalRegionEnd = nullptr;
 // which makes movedRegionOffset unit to be bytes.
 using byte_ptr = const char*;
 
-void SanitizerGCMapper::initializeMapping(const void* originalRegionStart,
+void SanitizeGCMapper::initializeMapping(const void* originalRegionStart,
         const void* originalRegionEnd, const void* movedRegionStart, const void* movedRegionEnd) {
-    SanitizerGCMapper::movedRegionOffset =
+    SanitizeGCMapper::movedRegionOffset =
             static_cast<byte_ptr>(originalRegionStart) -
             static_cast<byte_ptr>(movedRegionStart);
-    SanitizerGCMapper::movedRegionStart = movedRegionStart;
-    SanitizerGCMapper::movedRegionEnd = movedRegionEnd;
-    SanitizerGCMapper::originalRegionStart = originalRegionStart;
-    SanitizerGCMapper::originalRegionEnd = originalRegionEnd;
+    SanitizeGCMapper::movedRegionStart = movedRegionStart;
+    SanitizeGCMapper::movedRegionEnd = movedRegionEnd;
+    SanitizeGCMapper::originalRegionStart = originalRegionStart;
+    SanitizeGCMapper::originalRegionEnd = originalRegionEnd;
 }
 
-const void* SanitizerGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
+const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     if (movedRegionOffset != 0 &&
             newAddr >= movedRegionStart && newAddr <= movedRegionEnd) {
         return static_cast<byte_ptr>(newAddr) + movedRegionOffset;
@@ -33,7 +33,7 @@ const void* SanitizerGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     return newAddr;
 }
 
-const void* SanitizerGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr) {
+const void* SanitizeGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr) {
     if (movedRegionOffset != 0 &&
             originalAddr >= originalRegionStart && originalAddr <= originalRegionEnd) {
         return static_cast<byte_ptr>(originalAddr) - movedRegionOffset;

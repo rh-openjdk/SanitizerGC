@@ -1,11 +1,10 @@
-#ifndef CUSTOMMAPPER_H
-#define CUSTOMMAPPER_H
+#ifndef SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP
+#define SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP
 
 #include <cstddef>
-#include <stdint.h>
 #include "runtime/globals.hpp"
 
-class SanitizerGCMapper {
+class SanitizeGCMapper {
 private:
     // TODO, put the public variables back here
     using byte = unsigned char;
@@ -35,4 +34,4 @@ public:
     }
 };
 
-#endif //CUSTOMMAPPER_H
+#endif // SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP

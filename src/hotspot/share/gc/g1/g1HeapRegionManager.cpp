@@ -717,7 +717,7 @@ void HeapRegionManager::verify() {
     G1HeapRegion* hr = _regions.get_by_index(i);
     guarantee(hr != nullptr, "invariant: i: %u", i);
     HeapWord* hr_bottom = hr->bottom();
-    SanitizerGCMapper::remapAddress(hr_bottom);
+    SanitizeGCMapper::remapAddress(hr_bottom);
     guarantee(!prev_committed || hr_bottom == prev_end,
               "invariant i: %u " HR_FORMAT " prev_end: " PTR_FORMAT,
               i, HR_FORMAT_PARAMS(hr), p2i(prev_end));
@@ -730,7 +730,7 @@ void HeapRegionManager::verify() {
     // but not put into a region set.
     prev_committed = true;
     prev_end = hr->end();
-    SanitizerGCMapper::remapAddress(prev_end);
+    SanitizeGCMapper::remapAddress(prev_end);
   }
   for (uint i = _allocated_heapregions_length; i < reserved_length(); i++) {
     guarantee(_regions.get_by_index(i) == nullptr, "invariant i: %u", i);

@@ -40,10 +40,10 @@ MemRegion MemRegion::intersection(const MemRegion mr2) const {
   HeapWord* mr2_start = mr2.start();
   HeapWord* this_end = end();
   HeapWord* mr2_end = mr2.end();
-  SanitizerGCMapper::remapAddress(this_start);
-  SanitizerGCMapper::remapAddress(mr2_start);
-  SanitizerGCMapper::remapAddress(this_end);
-  SanitizerGCMapper::remapAddress(mr2_end);
+  SanitizeGCMapper::remapAddress(this_start);
+  SanitizeGCMapper::remapAddress(mr2_start);
+  SanitizeGCMapper::remapAddress(this_end);
+  SanitizeGCMapper::remapAddress(mr2_end);
 
   HeapWord* res_start = MAX2(this_start, mr2_start);
   HeapWord* res_end   = MIN2(this_end,   mr2_end);

@@ -75,7 +75,7 @@ void G1HeapRegion::move_this_region() {
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
-  SanitizerGCMapper::initializeMapping(_bottom, _end, new_bottom, new_end);
+  SanitizeGCMapper::initializeMapping(_bottom, _end, new_bottom, new_end);
   _bottom = new_bottom;
   _top = new_bottom;
   _end = new_end;
@@ -101,10 +101,10 @@ public:
 void printMemoryRegionMap() {
   G1CollectedHeap *heap = G1CollectedHeap::heap();
 
-  const void * originalStart = SanitizerGCMapper::originalRegionStart;
-  const void * originalEnd   = SanitizerGCMapper::originalRegionEnd;
-  const void * movedStart = SanitizerGCMapper::movedRegionStart;
-  const void * movedEnd   = SanitizerGCMapper::movedRegionEnd;
+  const void * originalStart = SanitizeGCMapper::originalRegionStart;
+  const void * originalEnd   = SanitizeGCMapper::originalRegionEnd;
+  const void * movedStart = SanitizeGCMapper::movedRegionStart;
+  const void * movedEnd   = SanitizeGCMapper::movedRegionEnd;
 
   HeapWord * firstRegionBottom = heap->region_at(0)->bottom();
 
