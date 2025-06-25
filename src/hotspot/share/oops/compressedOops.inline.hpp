@@ -66,9 +66,10 @@ inline oop CompressedOops::decode(narrowOop v) {
 inline narrowOop CompressedOops::encode_not_null(oop v) {
   assert(!is_null(v), "oop value can never be zero");
   assert(is_object_aligned(v), "address not aligned: " PTR_FORMAT, p2i(v));
-  assert(is_in(v), "address not in heap range: " PTR_FORMAT, p2i(v));
+  assert(is_in(v) || SanitizeGC, "address not in heap range: " PTR_FORMAT, p2i(v)); // SANITIZER, skipping
   uint64_t  pd = (uint64_t)(pointer_delta((void*)v, (void*)base(), 1));
-  assert(OopEncodingHeapMax > pd, "change encoding max if new encoding");
+  assert(OopEncodingHeapMax > pd || SanitizeGC, "change encoding max if new encoding");
+  // it is way outside of the heap
   narrowOop result = narrow_oop_cast(pd >> shift());
   assert(decode_raw(result) == v, "reversibility");
   return result;
@@ -84,12 +85,12 @@ inline oop CompressedOops::decode_raw_not_null(oop v) {
 }
 
 inline oop CompressedOops::decode_not_null(oop v) {
-  assert(Universe::is_in_heap(v), "object not in heap " PTR_FORMAT, p2i(v));
+  assert(Universe::is_in_heap(v) || SanitizeGC, "object not in heap " PTR_FORMAT, p2i(v));
   return v;
 }
 
 inline oop CompressedOops::decode(oop v) {
-  assert(Universe::is_in_heap_or_null(v), "object not in heap " PTR_FORMAT, p2i(v));
+  assert(Universe::is_in_heap_or_null(v) || SanitizeGC, "object not in heap " PTR_FORMAT, p2i(v));
   return v;
 }
 

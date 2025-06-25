@@ -51,8 +51,14 @@ void MarkBitMap::do_clear(MemRegion mr, bool large) {
          "Given range from " PTR_FORMAT " to " PTR_FORMAT " is completely outside the heap",
          p2i(mr.start()), p2i(mr.end()));
   // convert address range into offset range
-  size_t beg = addr_to_offset(intersection.start());
-  size_t end = addr_to_offset(intersection.end());
+  HeapWord *intersection_start = intersection.start();
+  HeapWord *intersection_end = intersection.end();
+
+  SanitizerGCMapper::remapAddress(intersection_start);
+  SanitizerGCMapper::remapAddress(intersection_end);
+
+  size_t beg = addr_to_offset(intersection_start);
+  size_t end = addr_to_offset(intersection_end);
   if (large) {
     _bm.clear_large_range(beg, end);
   } else {

@@ -120,6 +120,7 @@ inline void G1CollectedHeap::humongous_obj_regions_iterate(G1HeapRegion* start, 
 }
 
 inline uint G1CollectedHeap::addr_to_region(const void* addr) const {
+  SanitizerGCMapper::remapAddress(addr);
   assert(is_in_reserved(addr),
          "Cannot calculate region index for address " PTR_FORMAT " that is outside of the heap [" PTR_FORMAT ", " PTR_FORMAT ")",
          p2i(addr), p2i(reserved().start()), p2i(reserved().end()));
@@ -162,12 +163,12 @@ G1CollectedHeap::dirty_young_block(HeapWord* start, size_t word_size) {
   // asserts below.
   DEBUG_ONLY(G1HeapRegion* containing_hr = heap_region_containing(start);)
   assert(word_size > 0, "pre-condition");
-  assert(containing_hr->is_in(start), "it should contain start");
+  assert(containing_hr->is_in(start) || SanitizeGC, "it should contain start");
   assert(containing_hr->is_young(), "it should be young");
   assert(!containing_hr->is_humongous(), "it should not be humongous");
 
   HeapWord* end = start + word_size;
-  assert(containing_hr->is_in(end - 1), "it should also contain end - 1");
+  assert(containing_hr->is_in(end - 1) || SanitizeGC, "it should also contain end - 1");
 
   MemRegion mr(start, end);
   card_table()->g1_mark_as_young(mr);

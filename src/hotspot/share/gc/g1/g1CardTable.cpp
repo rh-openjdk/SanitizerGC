@@ -24,13 +24,17 @@
 
 #include "precompiled.hpp"
 #include "gc/g1/g1CardTable.hpp"
+
+#include <fstream>
+#include <iostream>
+
 #include "gc/g1/g1CollectedHeap.inline.hpp"
 #include "gc/shared/memset_with_concurrent_readers.hpp"
 #include "logging/log.hpp"
 
 void G1CardTable::g1_mark_as_young(const MemRegion& mr) {
-  CardValue *const first = byte_for(mr.start());
-  CardValue *const last = byte_after(mr.last());
+  CardValue *first = byte_for(mr.start());
+  CardValue *last = byte_after(mr.last());
 
   memset_with_concurrent_readers(first, g1_young_gen, pointer_delta(last, first, sizeof(CardValue)));
 }

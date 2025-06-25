@@ -25,6 +25,7 @@
 #ifndef SHARE_GC_SHARED_MARKBITMAP_HPP
 #define SHARE_GC_SHARED_MARKBITMAP_HPP
 
+#include "gc/g1/sanitizeAddressMapper.hpp"
 #include "memory/memRegion.hpp"
 #include "oops/oopsHierarchy.hpp"
 #include "utilities/bitMap.hpp"
@@ -72,6 +73,7 @@ public:
   // Read marks
   bool is_marked(oop obj) const;
   bool is_marked(HeapWord* addr) const {
+    SanitizerGCMapper::remapAddress(addr);
     assert(_covered.contains(addr),
            "Address " PTR_FORMAT " is outside underlying space from " PTR_FORMAT " to " PTR_FORMAT,
            p2i(addr), p2i(_covered.start()), p2i(_covered.end()));

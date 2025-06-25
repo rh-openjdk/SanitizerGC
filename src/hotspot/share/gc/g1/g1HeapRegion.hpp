@@ -69,8 +69,9 @@ class nmethod;
 class G1HeapRegion : public CHeapObj<mtGC> {
   friend class VMStructs;
 
-  HeapWord* const _bottom;
-  HeapWord* const _end;
+  // SANITIZER, changing to not be const
+  HeapWord* _bottom;
+  HeapWord* _end;
 
   HeapWord* volatile _top;
 
@@ -310,6 +311,8 @@ public:
     assert(obj != nullptr, "obj can't be null");
     return (((uintptr_t) p ^ cast_from_oop<uintptr_t>(obj)) >> LogOfHRGrainBytes) == 0;
   }
+
+  void move_this_region();
 
   static size_t max_region_size();
   static size_t min_region_size_in_words();

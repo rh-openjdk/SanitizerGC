@@ -33,14 +33,19 @@
 #include "utilities/align.hpp"
 #include "utilities/bitMap.inline.hpp"
 
-inline HeapWord* MarkBitMap::get_next_marked_addr(const HeapWord* const addr,
-                                                  HeapWord* const limit) const {
+inline HeapWord* MarkBitMap::get_next_marked_addr(const HeapWord* addr,
+                                                  HeapWord* limit) const {
   assert(limit != nullptr, "limit must not be null");
+  SanitizerGCMapper::remapAddress(addr);
+  SanitizerGCMapper::remapAddress(limit);
   // Round addr up to a possible object boundary to be safe.
   size_t const addr_offset = addr_to_offset(align_up(addr, HeapWordSize << _shifter));
   size_t const limit_offset = addr_to_offset(limit);
   size_t const nextOffset = _bm.find_first_set_bit(addr_offset, limit_offset);
-  return offset_to_addr(nextOffset);
+
+  HeapWord* next_addr = offset_to_addr(nextOffset);
+  SanitizerGCMapper::reverseRemapAddress(next_addr);
+  return next_addr;
 }
 
 inline void MarkBitMap::mark(HeapWord* addr) {
@@ -54,11 +59,13 @@ inline void MarkBitMap::mark(oop obj) {
 
 inline void MarkBitMap::clear(HeapWord* addr) {
   check_mark(addr);
+  SanitizerGCMapper::remapAddress(addr);
   _bm.clear_bit(addr_to_offset(addr));
 }
 
 inline bool MarkBitMap::par_mark(HeapWord* addr) {
   check_mark(addr);
+  SanitizerGCMapper::remapAddress(addr);
   return _bm.par_set_bit(addr_to_offset(addr));
 }
 

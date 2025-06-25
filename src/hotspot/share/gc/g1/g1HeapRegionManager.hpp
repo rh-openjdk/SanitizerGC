@@ -74,6 +74,9 @@ class HeapRegionManager: public CHeapObj<mtGC> {
   friend class VMStructs;
   friend class HeapRegionClaimer;
 
+  // SANITIZER, only taking the first
+  bool wasFirstTaken;
+
   G1RegionToSpaceMapper* _bot_mapper;
   G1RegionToSpaceMapper* _cardtable_mapper;
 

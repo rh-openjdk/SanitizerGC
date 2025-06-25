@@ -25,6 +25,7 @@
 #ifndef SHARE_GC_SHARED_CARDTABLE_HPP
 #define SHARE_GC_SHARED_CARDTABLE_HPP
 
+#include "gc/g1/sanitizeAddressMapper.hpp"
 #include "memory/allocation.hpp"
 #include "memory/memRegion.hpp"
 #include "oops/oopsHierarchy.hpp"
@@ -114,6 +115,7 @@ public:
 
   // Mapping from address to card marking array entry
   CardValue* byte_for(const void* p) const {
+    SanitizerGCMapper::remapAddress(p);
     assert(_whole_heap.contains(p),
            "Attempt to access p = " PTR_FORMAT " out of bounds of "
            " card marking array's _whole_heap = [" PTR_FORMAT "," PTR_FORMAT ")",

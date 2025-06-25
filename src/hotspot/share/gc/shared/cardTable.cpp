@@ -212,13 +212,21 @@ void CardTable::clear_MemRegion(MemRegion mr) {
   // Be conservative: only clean cards entirely contained within the
   // region.
   CardValue* cur;
-  if (mr.start() == _whole_heap.start()) {
-    cur = byte_for(mr.start());
+
+  HeapWord* start = mr.start();
+  SanitizerGCMapper::remapAddress(start);
+
+  if (start == _whole_heap.start()) {
+    cur = byte_for(start);
   } else {
-    assert(mr.start() > _whole_heap.start(), "mr is not covered.");
-    cur = byte_after(mr.start() - 1);
+    assert(start > _whole_heap.start(), "mr is not covered.");
+    cur = byte_after(start - 1);
   }
-  CardValue* last = byte_after(mr.last());
+
+  HeapWord* mr_last = mr.last();
+  SanitizerGCMapper::remapAddress(mr_last);
+
+  CardValue* last = byte_after(mr_last);
   memset(cur, clean_card, pointer_delta(last, cur, sizeof(CardValue)));
 }
 

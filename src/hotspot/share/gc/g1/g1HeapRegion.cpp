@@ -22,6 +22,11 @@
  *
  */
 
+#include <fstream>
+#include <iostream>
+#include <ostream>
+#include <sys/mman.h>
+
 #include "precompiled.hpp"
 #include "code/nmethod.hpp"
 #include "gc/g1/g1Allocator.inline.hpp"
@@ -47,12 +52,97 @@
 #include "runtime/atomic.hpp"
 #include "runtime/globals_extension.hpp"
 #include "utilities/powerOfTwo.hpp"
+#include "gc/g1/sanitizeAddressMapper.hpp"
 
 uint   G1HeapRegion::LogOfHRGrainBytes = 0;
 uint   G1HeapRegion::LogCardsPerRegion = 0;
 size_t G1HeapRegion::GrainBytes        = 0;
 size_t G1HeapRegion::GrainWords        = 0;
 size_t G1HeapRegion::CardsPerRegion    = 0;
+
+// SANITIZER, trying to move this region
+void G1HeapRegion::move_this_region() {
+  assert(_bottom + GrainWords == _end, "the region has an unexpected size");
+  HeapWord* new_bottom = reinterpret_cast<HeapWord*>(mmap(nullptr, GrainBytes,
+          PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+  if (new_bottom == MAP_FAILED) {
+    printf("mmap failed\n");
+    return;
+  }
+  memcpy(new_bottom, _bottom, GrainBytes);
+  if (mprotect(_bottom, GrainBytes, PROT_NONE) != 0) {
+    printf("mprotect failed, continuing anyway\n");
+  }
+
+  HeapWord* new_end = new_bottom + GrainWords;
+  SanitizerGCMapper::initializeMapping(_bottom, _end, new_bottom, new_end);
+  _bottom = new_bottom;
+  _top = new_bottom;
+  _end = new_end;
+}
+
+class PrintG1HeapRegionInfoClosure : public HeapRegionClosure {
+public:
+  bool do_heap_region(G1HeapRegion* hr) override {
+    uint index = hr->hrm_index();
+    HeapWord* bottom = hr->bottom();
+    HeapWord* top = hr->top();
+    HeapWord* end = hr->end();
+
+    printf("----------  %p  ----------\n", bottom);
+    printf("|    hrm_index:  %d       \n", index);
+    printf("|    current top:  %p     \n", top);
+    printf("| is young: %d, is eden: %d, is old: %d, is survivor: %d\n", hr->is_young(), hr->is_eden(), hr->is_old(), hr->is_survivor());
+    printf("----------  %p  ----------\n\n", end);
+    return false;
+  }
+};
+
+void printMemoryRegionMap() {
+  G1CollectedHeap *heap = G1CollectedHeap::heap();
+
+  const void * originalStart = SanitizerGCMapper::originalRegionStart;
+  const void * originalEnd   = SanitizerGCMapper::originalRegionEnd;
+  const void * movedStart = SanitizerGCMapper::movedRegionStart;
+  const void * movedEnd   = SanitizerGCMapper::movedRegionEnd;
+
+  HeapWord * firstRegionBottom = heap->region_at(0)->bottom();
+
+  if (reinterpret_cast<const char *>(originalStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("----------  %p  ----------\n", originalStart);
+    printf("|    MOVED original       \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
+    printf("----------  %p  ----------\n\n", originalEnd);
+    printf("   ...\n\n");
+  }
+
+  if (reinterpret_cast<const char *>(movedStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("----------  %p  ----------\n", movedStart);
+    printf("|    MOVED new            \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
+    printf("----------  %p  ----------\n\n", movedEnd);
+    printf("   ...\n\n");
+  }
+
+  PrintG1HeapRegionInfoClosure customClosure;
+  heap->heap_region_iterate(&customClosure);
+
+  if (reinterpret_cast<const char *>(originalStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("   ...\n\n");
+    printf("----------  %p  ----------\n", originalStart);
+    printf("|    MOVED original       \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
+    printf("----------  %p  ----------\n\n", originalEnd);
+  }
+
+  if (reinterpret_cast<const char *>(movedStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
+    printf("   ...\n\n");
+    printf("----------  %p  ----------\n", movedStart);
+    printf("|    MOVED new            \n");
+    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
+    printf("----------  %p  ----------\n\n", movedEnd);
+  }
+}
 
 size_t G1HeapRegion::max_region_size() {
   return HeapRegionBounds::max_size();

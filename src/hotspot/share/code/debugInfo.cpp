@@ -349,8 +349,8 @@ void ConstantOopWriteValue::write_on(DebugInfoWriteStream* stream) {
     // cannot use ThreadInVMfromNative here since in case of JVMCI compiler,
     // thread is already in VM state.
     ThreadInVMfromUnknown tiv;
-    assert(JNIHandles::resolve(value()) == nullptr ||
-           Universe::heap()->is_in(JNIHandles::resolve(value())),
+    assert((JNIHandles::resolve(value()) == nullptr ||
+           Universe::heap()->is_in(JNIHandles::resolve(value()))) || SanitizeGC,
            "Should be in heap");
  }
 #endif

@@ -827,7 +827,7 @@ class ImmutableCollections {
         @Override
         public Iterator<E> iterator() {
             return new Iterator<>() {
-                private int idx = (e1 == EMPTY) ? 1 : 2;
+                private int idx = (e1 == EMPTY) ? 1 : 2; // TODO
 
                 @Override
                 public boolean hasNext() {

@@ -25,6 +25,9 @@
 #include "precompiled.hpp"
 #include "classfile/javaClasses.hpp"
 #include "gc/g1/c2/g1BarrierSetC2.hpp"
+
+#include <opto/library_call.hpp>
+
 #include "gc/g1/g1BarrierSet.hpp"
 #include "gc/g1/g1BarrierSetRuntime.hpp"
 #include "gc/g1/g1CardTable.hpp"
@@ -62,6 +65,20 @@ const TypeFunc *G1BarrierSetC2::write_ref_field_post_entry_Type() {
   // create result type (range)
   fields = TypeTuple::fields(0);
   const TypeTuple *range = TypeTuple::make(TypeFunc::Parms, fields);
+
+  return TypeFunc::make(domain, range);
+}
+
+const TypeFunc *G1BarrierSetC2::mapNewAddrToOriginalAddr_Type() {
+  const Type **fields = TypeTuple::fields(1);
+  fields[TypeFunc::Parms+0] = TypeRawPtr::NOTNULL;  // newAddr
+
+  const TypeTuple *domain = TypeTuple::make(TypeFunc::Parms+1, fields);
+
+  // create result type (range)
+  fields = TypeTuple::fields(1);
+  fields[TypeFunc::Parms+0] = TypeRawPtr::NOTNULL;
+  const TypeTuple *range = TypeTuple::make(TypeFunc::Parms+1, fields);
 
   return TypeFunc::make(domain, range);
 }
@@ -464,17 +481,26 @@ void G1BarrierSetC2::post_barrier(GraphKit* kit,
 
         // Ok must mark the card if not already dirty
 
+        // SanitizeGC, mapping the card_adr to its new place
+        Node* mapped;
+        if (SanitizeGC) {
+          mapped = __ make_leaf_call(mapNewAddrToOriginalAddr_Type(), CAST_FROM_FN_PTR(address,
+            SanitizerGCMapper::mapNewAddrToOriginalAddr), "mapNewAddrToOriginalAddr", card_adr)->in(0);//->lookup(3); SANITIZE TODO
+        } else {
+          mapped = card_adr;
+        }
+
         // load the original value of the card
-        Node* card_val = __ load(__ ctrl(), card_adr, TypeInt::INT, T_BYTE, Compile::AliasIdxRaw);
+        Node* card_val = __ load(__ ctrl(), mapped, TypeInt::INT, T_BYTE, Compile::AliasIdxRaw);
 
         __ if_then(card_val, BoolTest::ne, young_card, unlikely); {
           kit->sync_kit(ideal);
           kit->insert_mem_bar(Op_MemBarVolatile, oop_store);
           __ sync_kit(kit);
 
-          Node* card_val_reload = __ load(__ ctrl(), card_adr, TypeInt::INT, T_BYTE, Compile::AliasIdxRaw);
+          Node* card_val_reload = __ load(__ ctrl(), mapped, TypeInt::INT, T_BYTE, Compile::AliasIdxRaw);
           __ if_then(card_val_reload, BoolTest::ne, dirty_card); {
-            g1_mark_card(kit, ideal, card_adr, oop_store, alias_idx, index, index_adr, buffer, tf);
+            g1_mark_card(kit, ideal, mapped, oop_store, alias_idx, index, index_adr, buffer, tf);
           } __ end_if();
         } __ end_if();
       } __ end_if();

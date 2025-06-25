@@ -25,6 +25,8 @@
 #ifndef SHARE_GC_G1_G1COLLECTEDHEAP_HPP
 #define SHARE_GC_G1_G1COLLECTEDHEAP_HPP
 
+#include "gc/g1/sanitizeAddressMapper.hpp"
+
 #include "gc/g1/g1BarrierSet.hpp"
 #include "gc/g1/g1BiasedArray.hpp"
 #include "gc/g1/g1CardTable.hpp"
@@ -1051,6 +1053,7 @@ public:
   }
 
   bool is_in_reserved(const void* addr) const {
+    SanitizerGCMapper::remapAddress(addr);
     return reserved().contains(addr);
   }
 

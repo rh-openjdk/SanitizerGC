@@ -233,7 +233,7 @@ void ciObjectFactory::remove_symbols() {
 ciObject* ciObjectFactory::get(oop key) {
   ASSERT_IN_VM;
 
-  assert(Universe::heap()->is_in(key), "must be");
+  assert(Universe::heap()->is_in(key) || SanitizeGC, "must be");
 
   NonPermObject* &bucket = find_non_perm(key);
   if (bucket != nullptr) {
@@ -246,7 +246,7 @@ ciObject* ciObjectFactory::get(oop key) {
   ciObject* new_object = create_new_object(keyHandle());
   assert(keyHandle() == new_object->get_oop(), "must be properly recorded");
   init_ident_of(new_object);
-  assert(Universe::heap()->is_in(new_object->get_oop()), "must be");
+  assert(Universe::heap()->is_in(new_object->get_oop()) || SanitizeGC, "must be");
 
   // Not a perm-space object.
   insert_non_perm(bucket, keyHandle(), new_object);
@@ -642,7 +642,7 @@ static ciObjectFactory::NonPermObject* emptyBucket = nullptr;
 // If there is no entry in the cache corresponding to this oop, return
 // the null tail of the bucket into which the oop should be inserted.
 ciObjectFactory::NonPermObject* &ciObjectFactory::find_non_perm(oop key) {
-  assert(Universe::heap()->is_in(key), "must be");
+  assert(Universe::heap()->is_in(key) || SanitizeGC, "must be");
   ciMetadata* klass = get_metadata(key->klass());
   NonPermObject* *bp = &_non_perm_bucket[(unsigned) klass->hash() % NON_PERM_BUCKETS];
   for (NonPermObject* p; (p = (*bp)) != nullptr; bp = &p->next()) {
@@ -670,7 +670,7 @@ inline ciObjectFactory::NonPermObject::NonPermObject(ciObjectFactory::NonPermObj
 //
 // Insert a ciObject into the non-perm table.
 void ciObjectFactory::insert_non_perm(ciObjectFactory::NonPermObject* &where, oop key, ciObject* obj) {
-  assert(Universe::heap()->is_in_or_null(key), "must be");
+  assert(Universe::heap()->is_in_or_null(key) || SanitizeGC, "must be");
   assert(&where != &emptyBucket, "must not try to fill empty bucket");
   NonPermObject* p = new (arena()) NonPermObject(where, key, obj);
   assert(where == p && is_equal(p, key) && p->object() == obj, "entry must match");

@@ -25,6 +25,7 @@
 #ifndef SHARE_GC_G1_G1BLOCKOFFSETTABLE_INLINE_HPP
 #define SHARE_GC_G1_G1BLOCKOFFSETTABLE_INLINE_HPP
 
+#include "gc/g1/sanitizeAddressMapper.hpp"
 #include "gc/g1/g1BlockOffsetTable.hpp"
 #include "gc/g1/g1HeapRegion.hpp"
 #include "gc/shared/cardTable.hpp"
@@ -33,6 +34,7 @@
 #include "oops/oop.inline.hpp"
 
 inline HeapWord* G1BlockOffsetTable::block_start_reaching_into_card(const void* addr) const {
+  SanitizerGCMapper::remapAddress(addr);
   assert(_reserved.contains(addr), "invalid address");
 
   uint8_t* entry = entry_for_addr(addr);
