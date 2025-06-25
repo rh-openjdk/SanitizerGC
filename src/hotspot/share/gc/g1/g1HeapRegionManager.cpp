@@ -63,7 +63,6 @@ public:
 };
 
 HeapRegionManager::HeapRegionManager() :
-  wasFirstTaken(false),
   _bot_mapper(nullptr),
   _cardtable_mapper(nullptr),
   _committed_map(),
@@ -119,15 +118,10 @@ G1HeapRegion* HeapRegionManager::allocate_free_region(HeapRegionType type, uint 
   if (SanitizeGC) {
     // SANITIZER, printing of bottom, top and end
     printf("REGION WITH INDEX: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
-
-    // SANITIZER, moving the first region to different address
-    if (!wasFirstTaken) {
-      hr->move_this_region();
-      printf("    %d was moved here:\n", hr->hrm_index());
-      printf("    index: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
-
-      wasFirstTaken = true;
-    }
+    hr->move_this_region();
+    printf("    %d was moved here:\n", hr->hrm_index());
+    printf("    index: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
+    fflush(stdout);
   }
 
   return hr;

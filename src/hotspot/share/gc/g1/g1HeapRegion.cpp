@@ -52,7 +52,7 @@
 #include "runtime/atomic.hpp"
 #include "runtime/globals_extension.hpp"
 #include "utilities/powerOfTwo.hpp"
-#include "gc/g1/sanitizeAddressMapper.hpp"
+#include "gc/g1/sanitizeHeapRegionList.hpp"
 
 uint   G1HeapRegion::LogOfHRGrainBytes = 0;
 uint   G1HeapRegion::LogCardsPerRegion = 0;
@@ -75,7 +75,8 @@ void G1HeapRegion::move_this_region() {
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
-  SanitizeGCMapper::initializeMapping(_bottom, _end, new_bottom, new_end);
+  SanitizeGCHeapRegionList::add_region_to_list(_bottom, _end, new_bottom, new_end);
+  assert(_bottom == _top, "sanity");
   _bottom = new_bottom;
   _top = new_bottom;
   _end = new_end;
@@ -100,48 +101,8 @@ public:
 
 void printMemoryRegionMap() {
   G1CollectedHeap *heap = G1CollectedHeap::heap();
-
-  const void * originalStart = SanitizeGCMapper::originalRegionStart;
-  const void * originalEnd   = SanitizeGCMapper::originalRegionEnd;
-  const void * movedStart = SanitizeGCMapper::movedRegionStart;
-  const void * movedEnd   = SanitizeGCMapper::movedRegionEnd;
-
-  HeapWord * firstRegionBottom = heap->region_at(0)->bottom();
-
-  if (reinterpret_cast<const char *>(originalStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
-    printf("----------  %p  ----------\n", originalStart);
-    printf("|    MOVED original       \n");
-    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
-    printf("----------  %p  ----------\n\n", originalEnd);
-    printf("   ...\n\n");
-  }
-
-  if (reinterpret_cast<const char *>(movedStart) < reinterpret_cast<const char *>(firstRegionBottom)) {
-    printf("----------  %p  ----------\n", movedStart);
-    printf("|    MOVED new            \n");
-    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
-    printf("----------  %p  ----------\n\n", movedEnd);
-    printf("   ...\n\n");
-  }
-
   PrintG1HeapRegionInfoClosure customClosure;
   heap->heap_region_iterate(&customClosure);
-
-  if (reinterpret_cast<const char *>(originalStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
-    printf("   ...\n\n");
-    printf("----------  %p  ----------\n", originalStart);
-    printf("|    MOVED original       \n");
-    printf("|    hrm_index:  %d       \n", heap->addr_to_region(originalStart));
-    printf("----------  %p  ----------\n\n", originalEnd);
-  }
-
-  if (reinterpret_cast<const char *>(movedStart) > reinterpret_cast<const char *>(firstRegionBottom)) {
-    printf("   ...\n\n");
-    printf("----------  %p  ----------\n", movedStart);
-    printf("|    MOVED new            \n");
-    printf("|    hrm_index:  %d       \n", heap->addr_to_region(movedStart));
-    printf("----------  %p  ----------\n\n", movedEnd);
-  }
 }
 
 size_t G1HeapRegion::max_region_size() {
