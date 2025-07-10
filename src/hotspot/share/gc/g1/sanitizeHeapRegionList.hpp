@@ -28,6 +28,12 @@ public:
 };
 
 
+class SanitizeGCConsts {
+public:
+  static unsigned int mask_size;
+};
+
+
 class RegionMapConfig {
 public:
   using Key = const void*;
@@ -35,11 +41,11 @@ public:
 
   static uintx get_hash(Key const& key, bool* dead) {
     // TODO mask the address instead
-    return (uintx)key >> 23;
+    return (uintx)key >> SanitizeGCConsts::mask_size;
   }
 
   static void* allocate_node(void* context, size_t size, Value const& value) {
-    return AllocateHeap(size + sizeof(const void *), mtGC);
+    return AllocateHeap(sizeof(const void *), mtGC);
   }
 
   static void free_node(void* context, void* memory, Value const& value) {
@@ -54,19 +60,14 @@ class RegionMap : public CHeapObj<mtGC> {
 
   size_t volatile _num_entries;
 
-  bool is_empty() const { return number_of_entries() == 0; }
-
   class RegionMapLookUp : public StackObj {
     const void * _address;
   public:
     explicit RegionMapLookUp(const void * address) : _address(address) { }
     uintx get_hash() const {
-      // TODO mask the address instead
-      return (uintx)_address >> 23;
+      return (uintx)_address >> SanitizeGCConsts::mask_size;
     }
-    bool equals(const void** value) {
-      return false; // TODO, needs better logic!
-    }
+    bool equals(const void** value) { return true; }
     bool is_dead(const void** value) const { return false; }
   };
 
@@ -76,7 +77,7 @@ class RegionMap : public CHeapObj<mtGC> {
     RegionMapGet() : _return(nullptr) {}
     void operator()(const void** value) {
       assert(value != nullptr, "expected valid value");
-      _return = &value;
+      _return = *value;
     }
     const void* get_region_info() const {
       return _return;
@@ -88,17 +89,13 @@ public:
     _table(Mutex::service-1,
            nullptr,
            16,
-           false /* enable_statistics */),
+           false),
     _num_entries(0) { }
 
-  static uintx get_hash(const void* ri) {
-    return (uintx)ri >> 23;
-  }
-
-  void insert(const void* address, const void* region) {
-    RegionMapLookUp lookup(address);
+  void insert(const void* key, const void* value) {
+    RegionMapLookUp lookup(key);
     bool grow_hint = false;
-    bool inserted = _table.insert(Thread::current(), lookup, region, &grow_hint);
+    bool inserted = _table.insert(Thread::current(), lookup, value, &grow_hint);
     if (inserted) {
       Atomic::inc(&_num_entries);
     }
@@ -107,8 +104,8 @@ public:
     }
   }
 
-  bool remove(const void* address) {
-    RegionMapLookUp lookup(address);
+  bool remove(const void* key) {
+    RegionMapLookUp lookup(key);
     bool removed = _table.remove(Thread::current(), lookup);
     if (removed) {
       Atomic::dec(&_num_entries);
@@ -116,11 +113,11 @@ public:
     return removed;
   }
 
-  const void* get(const void* address) {
-    RegionMapLookUp lookup(address);
+  const void* get(const void* key) {
+    RegionMapLookUp lookup(key);
     RegionMapGet rmg;
-    bool got = _table.get(Thread::current(), lookup, rmg);
-    if (got) {
+    bool found = _table.get(Thread::current(), lookup, rmg);
+    if (found) {
       return rmg.get_region_info();
     }
     return nullptr;

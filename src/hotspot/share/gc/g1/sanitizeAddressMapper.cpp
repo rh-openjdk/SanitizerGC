@@ -6,20 +6,24 @@
 
 const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     const region_info_t ri = SanitizeGCHeapRegionList::get_region_from_list(newAddr, true);
+    // if (SanitizeGCRegionMaps::are_initialized) {
+    //     const void* original_addr = SanitizeGCRegionMaps::moved_map->get(newAddr);
+    //
+    //     if (original_addr != nullptr) {
+    //         uintptr_t new_ptr = (uintptr_t)newAddr;
+    //         const uintptr_t low_mask = ((uintptr_t)1 << (SanitizeGCConsts::mask_size - 5)) - 1;
+    //         uintptr_t mask = new_ptr & low_mask;
+    //         uintptr_t original_masked = (uintptr_t)original_addr & ~low_mask;
+    //         original_masked |= mask;
+    //
+    //         printf("-%p\n", (const void*) original_masked);
+    //     }
+    // }
 
     if (ri.offset != 0) {
-
-        if (SanitizeGCRegionMaps::are_initialized) {
-            printf("TTTT: %lu\n", SanitizeGCRegionMaps::moved_map->number_of_entries());
-
-            auto t = SanitizeGCRegionMaps::moved_map->get(newAddr);
-        }
-
-
+        printf("+%p\n", static_cast<byte_ptr>(newAddr) + ri.offset);
         return static_cast<byte_ptr>(newAddr) + ri.offset;
     }
-
-
 
     return newAddr;
 }

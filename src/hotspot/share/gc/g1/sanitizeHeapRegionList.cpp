@@ -15,6 +15,7 @@ int SanitizeGCHeapRegionList::arrayPosition = 0;
 bool SanitizeGCRegionMaps::are_initialized = false;
 RegionMap *SanitizeGCRegionMaps::moved_map = nullptr;
 RegionMap *SanitizeGCRegionMaps::original_map = nullptr;
+unsigned int SanitizeGCConsts::mask_size = 0;
 
 void SanitizeGCHeapRegionList::add_region_to_list(const void* original_region_start, const void* original_region_end,
                                 const void* moved_region_start, const void* moved_region_end) {
