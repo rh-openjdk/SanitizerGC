@@ -312,7 +312,7 @@ public:
     return (((uintptr_t) p ^ cast_from_oop<uintptr_t>(obj)) >> LogOfHRGrainBytes) == 0;
   }
 
-  void move_this_region();
+  void move_free_region();
 
   static size_t max_region_size();
   static size_t min_region_size_in_words();

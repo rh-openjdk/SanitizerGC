@@ -12,6 +12,10 @@ using byte_ptr = const char*;
 region_info_t SanitizeGCHeapRegionList::regions[150]; // TODO, random number for now
 int SanitizeGCHeapRegionList::arrayPosition = 0;
 
+bool SanitizeGCRegionMaps::are_initialized = false;
+RegionMap *SanitizeGCRegionMaps::moved_map = nullptr;
+RegionMap *SanitizeGCRegionMaps::original_map = nullptr;
+
 void SanitizeGCHeapRegionList::add_region_to_list(const void* original_region_start, const void* original_region_end,
                                 const void* moved_region_start, const void* moved_region_end) {
   region_info_t region_info;
