@@ -27,12 +27,10 @@ public:
   // void delete_region_in_maps(...); TODO
 };
 
-
 class SanitizeGCConsts {
 public:
   static unsigned int mask_size;
 };
-
 
 class RegionMapConfig {
 public:
@@ -40,7 +38,6 @@ public:
   using Value = const void*;
 
   static uintx get_hash(Key const& key, bool* dead) {
-    // TODO mask the address instead
     return (uintx)key >> SanitizeGCConsts::mask_size;
   }
 
@@ -60,18 +57,21 @@ class RegionMap : public CHeapObj<mtGC> {
 
   size_t volatile _num_entries;
 
-  class RegionMapLookUp : public StackObj {
-    const void * _address;
+  class RegionMapLookUp {
+    const void* _address;
   public:
     explicit RegionMapLookUp(const void * address) : _address(address) { }
     uintx get_hash() const {
       return (uintx)_address >> SanitizeGCConsts::mask_size;
     }
-    bool equals(const void** value) { return true; }
+    bool equals(const void** value) {
+      // return _address == *value;
+      return true;
+    }
     bool is_dead(const void** value) const { return false; }
   };
 
-  class RegionMapGet : public StackObj {
+  class RegionMapGet {
     const void* _return;
   public:
     RegionMapGet() : _return(nullptr) {}

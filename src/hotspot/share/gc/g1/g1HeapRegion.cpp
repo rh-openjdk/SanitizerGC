@@ -63,14 +63,16 @@ size_t G1HeapRegion::CardsPerRegion    = 0;
 // TODO => move this to a separate file
 void G1HeapRegion::move_free_region() {
   assert(_bottom + GrainWords == _end, "the region has an unexpected size");
-  HeapWord* new_bottom = reinterpret_cast<HeapWord*>(mmap(nullptr, GrainBytes,
-          PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
-  if (new_bottom == MAP_FAILED) {
-    printf("mmap failed\n");
+
+  HeapWord* new_bottom = (HeapWord*) os::reserve_memory_aligned(GrainBytes, GrainBytes, false);
+  os::protect_memory((char*) new_bottom, GrainBytes, os::MEM_PROT_RW, true);
+
+  if (new_bottom == nullptr) {
+    printf("mmap failed\n"); // TODO
     return;
   }
-  if (mprotect(_bottom, GrainBytes, PROT_NONE) != 0) {
-    printf("mprotect failed, continuing anyway\n");
+  if (!os::protect_memory((char*) _bottom, GrainBytes, os::MEM_PROT_NONE, true)) {
+    printf("mprotect failed, continuing anyway\n"); // TODO
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
@@ -78,13 +80,14 @@ void G1HeapRegion::move_free_region() {
 
   // TODO move elsewhere
   if (!SanitizeGCRegionMaps::are_initialized) {
-    SanitizeGCConsts::mask_size = LogOfHRGrainBytes + 3; // TODO weird value...
+    SanitizeGCConsts::mask_size = LogOfHRGrainBytes;
     SanitizeGCRegionMaps::moved_map = new RegionMap();
     SanitizeGCRegionMaps::original_map = new RegionMap();
     SanitizeGCRegionMaps::are_initialized = true;
   }
 
   SanitizeGCRegionMaps::moved_map->insert(new_bottom, _bottom);
+  SanitizeGCRegionMaps::moved_map->insert(new_end, _end); // TODO
   SanitizeGCRegionMaps::original_map->insert(_bottom, new_bottom);
 
   _bottom = new_bottom;
