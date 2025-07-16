@@ -1,18 +1,22 @@
 #include "sanitizeAddressMapper.hpp"
-#include "sanitizeHeapRegionList.hpp"
+#include "sanitizeGCHeapRegionMap.hpp"
 
 const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     if (SanitizeGCRegionMaps::are_initialized) {
-        const void* original_addr = SanitizeGCRegionMaps::moved_map->get(newAddr);
+        const void* remapped = SanitizeGCRegionMaps::moved_to_original->remap_address(newAddr);
+        if (remapped != nullptr) {
+            return remapped;
+        }
+    }
 
-        if (original_addr != nullptr) {
-            uintptr_t new_ptr = (uintptr_t)newAddr;
-            const uintptr_t mask_bits = ((uintptr_t)1 << (SanitizeGCConsts::mask_size)) - 1;
-            uintptr_t low_bits = new_ptr & mask_bits;
+    return newAddr;
+}
 
-            uintptr_t original_masked = (uintptr_t)original_addr | low_bits;
-
-            return (const void*) original_masked;
+const void* SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(const void* newAddr) {
+    if (SanitizeGCRegionMaps::are_initialized) {
+        const void* remapped = SanitizeGCRegionMaps::moved_to_original->remap_end_address(newAddr);
+        if (remapped != nullptr) {
+            return remapped;
         }
     }
 
@@ -20,10 +24,11 @@ const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
 }
 
 const void* SanitizeGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr) {
-    const region_info_t ri = SanitizeGCHeapRegionList::get_region_from_list(originalAddr, false);
-
-    if (ri.offset != 0) {
-        return static_cast<byte_ptr>(originalAddr) - ri.offset;
+    if (SanitizeGCRegionMaps::are_initialized) {
+        const void* remapped = SanitizeGCRegionMaps::original_to_moved->remap_address(originalAddr);
+        if (remapped != nullptr) {
+            return remapped;
+        }
     }
 
     return originalAddr;

@@ -52,7 +52,7 @@
 #include "runtime/atomic.hpp"
 #include "runtime/globals_extension.hpp"
 #include "utilities/powerOfTwo.hpp"
-#include "gc/g1/sanitizeHeapRegionList.hpp"
+#include "gc/g1/sanitizeGCHeapRegionMap.hpp"
 
 uint   G1HeapRegion::LogOfHRGrainBytes = 0;
 uint   G1HeapRegion::LogCardsPerRegion = 0;
@@ -62,33 +62,32 @@ size_t G1HeapRegion::CardsPerRegion    = 0;
 
 // TODO => move this to a separate file
 void G1HeapRegion::move_free_region() {
-  assert(_bottom + GrainWords == _end, "the region has an unexpected size");
+  assert(_bottom + GrainWords == _end, "The G1HeapRegion has an unexpected size");
 
   HeapWord* new_bottom = (HeapWord*) os::reserve_memory_aligned(GrainBytes, GrainBytes, false);
-  os::protect_memory((char*) new_bottom, GrainBytes, os::MEM_PROT_RW, true);
+  os::protect_memory((char*) new_bottom, GrainBytes, os::MEM_PROT_RW, true); // TODO
 
-  if (new_bottom == nullptr) {
-    printf("mmap failed\n"); // TODO
-    return;
-  }
+  assert(new_bottom != nullptr, "SanitizeGC: Failed to allocate memory for G1HeapRegion.");
+
   if (!os::protect_memory((char*) _bottom, GrainBytes, os::MEM_PROT_NONE, true)) {
-    printf("mprotect failed, continuing anyway\n"); // TODO
+    log_warning(gc)("SanitizeGC: Failed to protect old G1HeapRegion's memory, continuing anyway");
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
-  SanitizeGCHeapRegionList::add_region_to_list(_bottom, _end, new_bottom, new_end);
 
-  // TODO move elsewhere
+  // TODO initializing the maps
   if (!SanitizeGCRegionMaps::are_initialized) {
-    SanitizeGCConsts::mask_size = LogOfHRGrainBytes;
-    SanitizeGCRegionMaps::moved_map = new RegionMap();
-    SanitizeGCRegionMaps::original_map = new RegionMap();
+    RegionMapEntry::shift_by = LogOfHRGrainBytes;
+    SanitizeGCRegionMaps::moved_to_original = new RegionMap();
+    SanitizeGCRegionMaps::original_to_moved = new RegionMap();
     SanitizeGCRegionMaps::are_initialized = true;
   }
 
-  SanitizeGCRegionMaps::moved_map->insert(new_bottom, _bottom);
-  SanitizeGCRegionMaps::moved_map->insert(new_end, _end); // TODO
-  SanitizeGCRegionMaps::original_map->insert(_bottom, new_bottom);
+  SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, _bottom);
+  SanitizeGCRegionMaps::original_to_moved->insert(_bottom, new_bottom);
+
+  // // also inserting the "end" of the region to the "moved" map, as some logic needs to access it
+  // SanitizeGCRegionMaps::moved_to_original->insert(new_end, _end);
 
   _bottom = new_bottom;
   _top = new_bottom;

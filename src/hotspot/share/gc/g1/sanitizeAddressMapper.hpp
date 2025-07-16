@@ -1,7 +1,6 @@
 #ifndef SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP
 #define SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP
 
-#include <cstddef>
 #include "runtime/globals.hpp"
 
 class SanitizeGCMapper {
@@ -12,6 +11,7 @@ private:
 public:
 
     static const void* mapNewAddrToOriginalAddr(const void* newAddr);
+    static const void* mapNewEdgeAddrToOriginalAddr(const void* newAddr);
     static const void* mapOriginalAddrToNewAddr(const void *newAddr);
 
     template <typename T> static inline void remapAddress(T &addr) {
