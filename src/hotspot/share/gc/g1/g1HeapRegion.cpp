@@ -67,10 +67,10 @@ void G1HeapRegion::move_free_region() {
   HeapWord* new_bottom = (HeapWord*) os::reserve_memory_aligned(GrainBytes, GrainBytes, false);
   os::protect_memory((char*) new_bottom, GrainBytes, os::MEM_PROT_RW, true); // TODO
 
-  assert(new_bottom != nullptr, "SanitizeGC: Failed to allocate memory for G1HeapRegion.");
+  assert(new_bottom != nullptr, "SanitizeGC: Failed to allocate memory for G1HeapRegion");
 
   if (!os::protect_memory((char*) _bottom, GrainBytes, os::MEM_PROT_NONE, true)) {
-    log_warning(gc)("SanitizeGC: Failed to protect old G1HeapRegion's memory, continuing anyway");
+    log_warning(gc, region)("SanitizeGC: Failed to protect old G1HeapRegion's memory, continuing anyway");
   }
 
   HeapWord* new_end = new_bottom + GrainWords;
@@ -83,11 +83,16 @@ void G1HeapRegion::move_free_region() {
     SanitizeGCRegionMaps::are_initialized = true;
   }
 
-  SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, _bottom);
-  SanitizeGCRegionMaps::original_to_moved->insert(_bottom, new_bottom);
-
-  // // also inserting the "end" of the region to the "moved" map, as some logic needs to access it
-  // SanitizeGCRegionMaps::moved_to_original->insert(new_end, _end);
+  if (!_is_moved) {
+    SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, _bottom);
+    SanitizeGCRegionMaps::original_to_moved->insert(_bottom, new_bottom);
+    _is_moved = true;
+  } else {
+    HeapWord* original_bottom = (HeapWord*) SanitizeGCRegionMaps::moved_to_original->remap_address(_bottom);
+    SanitizeGCRegionMaps::moved_to_original->remove(_bottom);
+    SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, original_bottom);
+    SanitizeGCRegionMaps::original_to_moved->update(original_bottom, new_bottom);
+  }
 
   _bottom = new_bottom;
   _top = new_bottom;
@@ -102,11 +107,20 @@ public:
     HeapWord* top = hr->top();
     HeapWord* end = hr->end();
 
+    const void* bottom_remapped = SanitizeGCRegionMaps::moved_to_original->remap_address(bottom);
+    const void* end_remapped = SanitizeGCRegionMaps::moved_to_original->remap_end_address(end);
+    bool moved = bottom_remapped != nullptr;
+
     printf("----------  %p  ----------\n", bottom);
-    printf("|    hrm_index:  %d       \n", index);
+    printf("|    index:  %d           \n", index);
+    printf("|    was moved:  %d       \n", moved);
+    if (moved) {
+      printf("|    original bottom:  %p,  original end:  %p\n", bottom_remapped, end_remapped);
+    }
+    printf("|    is young:  %d,  is eden:  %d,  is old:  %d,  is survivor:  %d,  is humongous:  %d\n", hr->is_young(), hr->is_eden(), hr->is_old(), hr->is_survivor(), hr->is_humongous());
     printf("|    current top:  %p     \n", top);
-    printf("| is young: %d, is eden: %d, is old: %d, is survivor: %d\n", hr->is_young(), hr->is_eden(), hr->is_old(), hr->is_survivor());
     printf("----------  %p  ----------\n\n", end);
+    fflush(stdout);
     return false;
   }
 };
@@ -287,6 +301,7 @@ G1HeapRegion::G1HeapRegion(uint hrm_index,
                        G1CardSetConfiguration* config) :
   _bottom(mr.start()),
   _end(mr.end()),
+  _is_moved(false),
   _top(nullptr),
   _bot(bot),
   _pre_dummy_top(nullptr),

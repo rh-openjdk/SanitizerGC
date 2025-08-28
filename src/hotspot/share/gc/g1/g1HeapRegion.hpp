@@ -73,6 +73,8 @@ class G1HeapRegion : public CHeapObj<mtGC> {
   HeapWord* _bottom;
   HeapWord* _end;
 
+  bool _is_moved;
+
   HeapWord* volatile _top;
 
   G1BlockOffsetTable* _bot;
