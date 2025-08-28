@@ -116,12 +116,10 @@ G1HeapRegion* HeapRegionManager::allocate_free_region(HeapRegionType type, uint 
   }
 
   if (SanitizeGC) {
-    // SANITIZER, printing of bottom, top and end
-    printf("REGION WITH INDEX: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
+    // SANITIZER, moving region and printing info
+    log_debug(gc, region)("SanitizeGC: Moving region with index: %d (_bottom: %p, _end: %p)", hr->hrm_index(), hr->bottom(), hr->end());
     hr->move_free_region();
-    printf("    %d was moved here:\n", hr->hrm_index());
-    printf("    index: %d, _bottom: %p, _end: %p\n", hr->hrm_index(), hr->bottom(), hr->end());
-    fflush(stdout);
+    log_debug(gc, region)("SanitizeGC: Region with index %d was moved here: _bottom: %p, _end: %p", hr->hrm_index(), hr->bottom(), hr->end());
   }
 
   return hr;
@@ -724,7 +722,7 @@ void HeapRegionManager::verify() {
     // but not put into a region set.
     prev_committed = true;
     prev_end = hr->end();
-    SanitizeGCMapper::remapAddress(prev_end);
+    SanitizeGCMapper::remapEdgeAddress(prev_end);
   }
   for (uint i = _allocated_heapregions_length; i < reserved_length(); i++) {
     guarantee(_regions.get_by_index(i) == nullptr, "invariant i: %u", i);
