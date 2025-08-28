@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Red Hat, Inc.
+ * Copyright (c) 2025, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -22,22 +22,23 @@
  * questions.
  */
 
-/*
- * @test
- * @bug 9999999
- * @run main/othervm/timeout=30 -XX:-UseCompressedOops -XX:+SanitizeGC TestSanitizeGC
- */
+package gc.SanitizeGC;
 
-public class TestSanitizeGC {
-    public static void main(String args[]) {
-        Integer printInt = new Integer(0);
-        for (int i = 0; i < 1000; i++) {
-            Integer j = 123;
-            if (i == 500) {
-                printInt = j;
-            }
-        }
-        System.gc();
-        System.out.println("end " + printInt);
+import java.util.Random;
+
+public class SanitizeGCTestObj {
+    private byte[] data;
+
+    public SanitizeGCTestObj(int size) {
+        this.data = new byte[size]; // allocate some space
+    }
+
+    public void generateRandomData() {
+        Random random = new Random();
+        random.nextBytes(data);
+    }
+
+    public byte[] getData() {
+        return data;
     }
 }
