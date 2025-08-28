@@ -136,13 +136,11 @@ public:
   }
 
   const void* remap_end_address(const void* addr) {
-    const void* result = remap_address(addr);
-    if (result == nullptr) {
-      uintptr_t converted_addr = (uintptr_t)addr;
-      const void* remapped = remap_address((const void*)(converted_addr - 1));
-      if (remapped != nullptr) {
-        result = (const void*)((uintptr_t)remapped + 1);
-      }
+    const void* result = nullptr;
+    uintptr_t converted_addr = (uintptr_t)addr;
+    const void* remapped = remap_address((const void*)(converted_addr - 1));
+    if (remapped != nullptr) {
+      result = (const void*)((uintptr_t)remapped + 1);
     }
 
     return result;

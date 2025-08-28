@@ -37,14 +37,14 @@ inline HeapWord* MarkBitMap::get_next_marked_addr(const HeapWord* addr,
                                                   HeapWord* limit) const {
   assert(limit != nullptr, "limit must not be null");
   SanitizeGCMapper::remapAddress(addr);
-  SanitizeGCMapper::remapAddress(limit);
+  SanitizeGCMapper::remapEdgeAddress(limit);
   // Round addr up to a possible object boundary to be safe.
   size_t const addr_offset = addr_to_offset(align_up(addr, HeapWordSize << _shifter));
   size_t const limit_offset = addr_to_offset(limit);
   size_t const nextOffset = _bm.find_first_set_bit(addr_offset, limit_offset);
 
   HeapWord* next_addr = offset_to_addr(nextOffset);
-  SanitizeGCMapper::reverseRemapAddress(next_addr);
+  SanitizeGCMapper::reverseRemapEdgeAddress(next_addr);
   return next_addr;
 }
 

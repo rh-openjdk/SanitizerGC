@@ -33,3 +33,14 @@ const void* SanitizeGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr)
 
     return originalAddr;
 }
+
+const void* SanitizeGCMapper::mapOriginalEdgeAddrToNewAddr(const void* newAddr) {
+    if (SanitizeGCRegionMaps::are_initialized) {
+        const void* remapped = SanitizeGCRegionMaps::original_to_moved->remap_end_address(newAddr);
+        if (remapped != nullptr) {
+            return remapped;
+        }
+    }
+
+    return newAddr;
+}

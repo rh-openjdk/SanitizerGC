@@ -42,7 +42,8 @@ MemRegion MemRegion::intersection(const MemRegion mr2) const {
   HeapWord* mr2_end = mr2.end();
   SanitizeGCMapper::remapAddress(this_start);
   SanitizeGCMapper::remapAddress(mr2_start);
-  this_end = (HeapWord*) SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(this_end);
+  // the this_end address can sometimes be an end of a region, so the remapping will be a bit different here
+  SanitizeGCMapper::remapEdgeAddress(this_end);
   SanitizeGCMapper::remapAddress(mr2_end);
 
   HeapWord* res_start = MAX2(this_start, mr2_start);
