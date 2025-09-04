@@ -16,24 +16,16 @@ public:
     static const void* mapOriginalEdgeAddrToNewAddr(const void* newAddr);
 
     template <typename T> static inline void remapAddress(T &addr) {
-      if (SanitizeGC) {
-        addr = (T) mapNewAddrToOriginalAddr(addr);
-      }
+      addr = (T) mapNewAddrToOriginalAddr(addr);
     }
     template <typename T> static inline void remapEdgeAddress(T &addr) {
-        if (SanitizeGC) {
-            addr = (T) mapNewEdgeAddrToOriginalAddr(addr);
-        }
+      addr = (T) mapNewEdgeAddrToOriginalAddr(addr);
     }
     template <typename T> static inline void reverseRemapAddress(T &addr) {
-        if (SanitizeGC) {
-            addr = (T) mapOriginalAddrToNewAddr(addr);
-        }
+      addr = (T) mapOriginalAddrToNewAddr(addr);
     }
     template <typename T> static inline void reverseRemapEdgeAddress(T &addr) {
-        if (SanitizeGC) {
-            addr = (T) mapOriginalEdgeAddrToNewAddr(addr);
-        }
+      addr = (T) mapOriginalEdgeAddrToNewAddr(addr);
     }
 };
 

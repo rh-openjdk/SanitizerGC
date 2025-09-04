@@ -119,16 +119,18 @@ public:
   }
 
   const void* remap_address(const void* addr) {
-    RegionMapLookUp lookup(addr);
-    RegionMapGet rmg;
+    if (SanitizeGC) {
+      RegionMapLookUp lookup(addr);
+      RegionMapGet rmg;
 
-    bool found = _table.get(Thread::current(), lookup, rmg);
-    if (found) {
-      // remap the given address to the one which was found
-      const uintptr_t mask_bits = ((uintptr_t)1 << RegionMapEntry::shift_by) - 1;
-      const uintptr_t low_bits_to_add = (uintptr_t)addr & mask_bits;
+      bool found = _table.get(Thread::current(), lookup, rmg);
+      if (found) {
+        // remap the given address to the one which was found
+        const uintptr_t mask_bits = ((uintptr_t)1 << RegionMapEntry::shift_by) - 1;
+        const uintptr_t low_bits_to_add = (uintptr_t)addr & mask_bits;
 
-      return (const void*)((uintptr_t)rmg.get_entry_value() | low_bits_to_add);
+        return (const void*)((uintptr_t)rmg.get_entry_value() | low_bits_to_add);
+      }
     }
 
     // no matching entry was found
@@ -137,10 +139,12 @@ public:
 
   const void* remap_end_address(const void* addr) {
     const void* result = nullptr;
-    uintptr_t converted_addr = (uintptr_t)addr;
-    const void* remapped = remap_address((const void*)(converted_addr - 1));
-    if (remapped != nullptr) {
-      result = (const void*)((uintptr_t)remapped + 1);
+    if (SanitizeGC) {
+      uintptr_t converted_addr = (uintptr_t)addr;
+      const void* remapped = remap_address((const void*)(converted_addr - 1));
+      if (remapped != nullptr) {
+        result = (const void*)((uintptr_t)remapped + 1);
+      }
     }
 
     return result;
