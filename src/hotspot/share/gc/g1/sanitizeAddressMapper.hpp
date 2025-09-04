@@ -2,10 +2,6 @@
 #define SHARE_GC_G1_SANITIZEADDRESSMAPPER_HPP
 
 class SanitizeGCMapper {
-private:
-    using byte = unsigned char;
-    using byte_ptr = const byte*;
-
 public:
 
     static const void* mapNewAddrToOriginalAddrImpl(const void* newAddr);
