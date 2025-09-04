@@ -73,7 +73,7 @@ public:
   // Read marks
   bool is_marked(oop obj) const;
   bool is_marked(HeapWord* addr) const {
-    SanitizeGCMapper::remapAddress(addr);
+    SanitizeGCMapper::mapNewAddrToOriginalAddr(addr);
     assert(_covered.contains(addr),
            "Address " PTR_FORMAT " is outside underlying space from " PTR_FORMAT " to " PTR_FORMAT,
            p2i(addr), p2i(_covered.start()), p2i(_covered.end()));

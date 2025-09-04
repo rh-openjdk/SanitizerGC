@@ -69,7 +69,7 @@ const TypeFunc *G1BarrierSetC2::write_ref_field_post_entry_Type() {
   return TypeFunc::make(domain, range);
 }
 
-const TypeFunc *G1BarrierSetC2::mapNewAddrToOriginalAddr_Type() {
+const TypeFunc *G1BarrierSetC2::mapNewAddrToOriginalAddrImpl_Type() {
   const Type **fields = TypeTuple::fields(1);
   fields[TypeFunc::Parms+0] = TypeRawPtr::NOTNULL;  // newAddr
 
@@ -484,8 +484,8 @@ void G1BarrierSetC2::post_barrier(GraphKit* kit,
         // SanitizeGC, mapping the card_adr to its new place
         Node* mapped;
         if (SanitizeGC) {
-          mapped = __ make_leaf_call(mapNewAddrToOriginalAddr_Type(), CAST_FROM_FN_PTR(address,
-            SanitizeGCMapper::mapNewAddrToOriginalAddr), "mapNewAddrToOriginalAddr", card_adr)->in(0);//->lookup(3); SANITIZE TODO
+          mapped = __ make_leaf_call(mapNewAddrToOriginalAddrImpl_Type(), CAST_FROM_FN_PTR(address,
+            SanitizeGCMapper::mapNewAddrToOriginalAddrImpl), "mapNewAddrToOriginalAddrImpl", card_adr)->in(0);//->lookup(3); SANITIZE TODO
         } else {
           mapped = card_adr;
         }

@@ -1,7 +1,7 @@
 #include "sanitizeAddressMapper.hpp"
 #include "sanitizeGCHeapRegionMap.hpp"
 
-const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
+const void* SanitizeGCMapper::mapNewAddrToOriginalAddrImpl(const void* newAddr) {
     if (SanitizeGCRegionMaps::are_initialized) {
         const void* remapped = SanitizeGCRegionMaps::moved_to_original->remap_address(newAddr);
         if (remapped != nullptr) {
@@ -12,7 +12,7 @@ const void* SanitizeGCMapper::mapNewAddrToOriginalAddr(const void* newAddr) {
     return newAddr;
 }
 
-const void* SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(const void* newAddr) {
+const void* SanitizeGCMapper::mapNewEdgeAddrToOriginalAddrImpl(const void* newAddr) {
     if (SanitizeGCRegionMaps::are_initialized) {
         const void* remapped = SanitizeGCRegionMaps::moved_to_original->remap_end_address(newAddr);
         if (remapped != nullptr) {
@@ -23,7 +23,7 @@ const void* SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(const void* newAddr) 
     return newAddr;
 }
 
-const void* SanitizeGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr) {
+const void* SanitizeGCMapper::mapOriginalAddrToNewAddrImpl(const void* originalAddr) {
     if (SanitizeGCRegionMaps::are_initialized) {
         const void* remapped = SanitizeGCRegionMaps::original_to_moved->remap_address(originalAddr);
         if (remapped != nullptr) {
@@ -34,7 +34,7 @@ const void* SanitizeGCMapper::mapOriginalAddrToNewAddr(const void* originalAddr)
     return originalAddr;
 }
 
-const void* SanitizeGCMapper::mapOriginalEdgeAddrToNewAddr(const void* newAddr) {
+const void* SanitizeGCMapper::mapOriginalEdgeAddrToNewAddrImpl(const void* newAddr) {
     if (SanitizeGCRegionMaps::are_initialized) {
         const void* remapped = SanitizeGCRegionMaps::original_to_moved->remap_end_address(newAddr);
         if (remapped != nullptr) {

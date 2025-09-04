@@ -81,7 +81,7 @@ protected:
 
   static const TypeFunc* write_ref_field_pre_entry_Type();
   static const TypeFunc* write_ref_field_post_entry_Type();
-  static const TypeFunc* mapNewAddrToOriginalAddr_Type();
+  static const TypeFunc* mapNewAddrToOriginalAddrImpl_Type();
 
   virtual Node* load_at_resolved(C2Access& access, const Type* val_type) const;
 

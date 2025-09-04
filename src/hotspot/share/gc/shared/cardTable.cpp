@@ -214,7 +214,7 @@ void CardTable::clear_MemRegion(MemRegion mr) {
   CardValue* cur;
 
   HeapWord* start = mr.start();
-  SanitizeGCMapper::remapAddress(start);
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(start);
 
   if (start == _whole_heap.start()) {
     cur = byte_for(start);
@@ -224,7 +224,7 @@ void CardTable::clear_MemRegion(MemRegion mr) {
   }
 
   HeapWord* mr_last = mr.last();
-  SanitizeGCMapper::remapAddress(mr_last);
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(mr_last);
 
   CardValue* last = byte_after(mr_last);
   memset(cur, clean_card, pointer_delta(last, cur, sizeof(CardValue)));

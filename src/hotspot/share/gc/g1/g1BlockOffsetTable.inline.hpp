@@ -34,7 +34,7 @@
 #include "oops/oop.inline.hpp"
 
 inline HeapWord* G1BlockOffsetTable::block_start_reaching_into_card(const void* addr) const {
-  SanitizeGCMapper::remapAddress(addr);
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(addr);
   assert(_reserved.contains(addr), "invalid address");
 
   uint8_t* entry = entry_for_addr(addr);
@@ -57,15 +57,19 @@ uint8_t G1BlockOffsetTable::offset_array(uint8_t* addr) const {
 }
 
 inline uint8_t* G1BlockOffsetTable::entry_for_addr(const void* const p) const {
-  assert(_reserved.contains(p),
+  const void* op = p;
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(op);
+  assert(_reserved.contains(op),
          "out of bounds access to block offset table");
-  uint8_t* result = const_cast<uint8_t*>(&_offset_base[uintptr_t(p) >> CardTable::card_shift()]);
+  uint8_t* result = const_cast<uint8_t*>(&_offset_base[uintptr_t(op) >> CardTable::card_shift()]);
   return result;
 }
 
 inline HeapWord* G1BlockOffsetTable::addr_for_entry(const uint8_t* const p) const {
   // _offset_base can be "negative", so can't use pointer_delta().
-  size_t delta = p - _offset_base;
+  const uint8_t* op = p;
+  SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(op);
+  size_t delta = op - _offset_base;
   HeapWord* result = (HeapWord*) (delta << CardTable::card_shift());
   assert(_reserved.contains(result),
          "out of bounds accessor from block offset table");

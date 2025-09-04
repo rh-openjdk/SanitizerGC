@@ -38,11 +38,11 @@ inline bool G1CMBitMap::iterate(G1CMBitMapClosure* cl, MemRegion mr) {
          "Given MemRegion from " PTR_FORMAT " to " PTR_FORMAT " not contained in heap area",
          p2i(mr.start()), p2i(mr.end()));
   HeapWord* end = mr.end();
-  SanitizeGCMapper::remapAddress(end);
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(end);
   BitMap::idx_t const end_offset = addr_to_offset(mr.end());
 
   HeapWord* start = mr.start();
-  SanitizeGCMapper::remapAddress(start);
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(start);
   BitMap::idx_t offset = _bm.find_first_set_bit(addr_to_offset(mr.start()), end_offset);
 
   while (offset < end_offset) {

@@ -286,7 +286,7 @@ void G1BarrierSetAssembler::g1_write_barrier_post(MacroAssembler* masm,
   if (SanitizeGC) {
     RegSet exclude_set = RegSet::of(store_addr);
     __ push_call_clobbered_registers_except(exclude_set);
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddr), store_addr);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddrImpl), store_addr);
     __ movptr(store_addr, rax);
     __ pop_call_clobbered_registers_except(exclude_set);
   }
@@ -548,7 +548,7 @@ void G1BarrierSetAssembler::generate_c1_post_barrier_runtime_stub(StubAssembler*
   if (SanitizeGC) {
     RegSet exclude_set = RegSet::of(card_addr);
     __ push_call_clobbered_registers_except(exclude_set);
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddr), card_addr);
+    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddrImpl), card_addr);
     __ movptr(card_addr, rax);
     __ pop_call_clobbered_registers_except(exclude_set);
   }
