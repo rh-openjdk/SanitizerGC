@@ -196,7 +196,8 @@ void G1BlockOffsetTable::update_for_block_work(HeapWord* blk_start, HeapWord* bl
          "reference must be into the heap");
   assert(G1CollectedHeap::heap()->is_in_reserved(blk_end - 1),
          "limit must be within the heap");
-  assert(cur_card_boundary == addr_for_entry(offset_card),
+  HeapWord* addr_for_offset_card_entry = (HeapWord*) SanitizeGCMapper::mapOriginalAddrToNewAddrImpl(addr_for_entry(offset_card));
+  assert(cur_card_boundary == addr_for_offset_card_entry,
          "Block offset table entry must agree with cur_card_boundary");
 
   // Mark the card that holds the offset into the block.
@@ -221,7 +222,7 @@ void G1BlockOffsetTable::update_for_block_work(HeapWord* blk_start, HeapWord* bl
   // The offset can be 0 if the block starts on a boundary.  That
   // is checked by an assertion above.
   uint8_t* previous_card = entry_for_addr(blk_start);
-  HeapWord* boundary = addr_for_entry(previous_card);
+  HeapWord* boundary = (HeapWord*) SanitizeGCMapper::mapOriginalAddrToNewAddrImpl(addr_for_entry(previous_card));
   assert((offset_array(offset_card) == 0 && blk_start == boundary) ||
          (offset_array(offset_card) > 0 && offset_array(offset_card) < CardTable::card_size_in_words()),
          "offset array should have been set - "

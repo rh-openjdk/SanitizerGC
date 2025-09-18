@@ -160,6 +160,7 @@ public:
 
   // Mapping from address to card marking array index.
   size_t index_for(void* p) {
+    SanitizeGCMapper::mapNewAddrToOriginalAddr(p);
     assert(_whole_heap.contains(p),
            "Attempt to access p = " PTR_FORMAT " out of bounds of "
            " card marking array's _whole_heap = [" PTR_FORMAT "," PTR_FORMAT ")",

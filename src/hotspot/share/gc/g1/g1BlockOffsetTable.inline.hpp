@@ -48,7 +48,7 @@ inline HeapWord* G1BlockOffsetTable::block_start_reaching_into_card(const void* 
   }
   assert(offset < CardTable::card_size_in_words(), "offset too large");
   HeapWord* q = addr_for_entry(entry);
-  return q - offset;
+  return (HeapWord*) SanitizeGCMapper::mapOriginalAddrToNewAddrImpl(q - offset);
 }
 
 uint8_t G1BlockOffsetTable::offset_array(uint8_t* addr) const {
