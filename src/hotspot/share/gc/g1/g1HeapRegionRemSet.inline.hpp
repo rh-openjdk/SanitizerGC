@@ -117,6 +117,7 @@ inline void HeapRegionRemSet::iterate_for_merge(CardOrRangeVisitor& cl) {
 
 
 uintptr_t HeapRegionRemSet::to_card(OopOrNarrowOopStar from) const {
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(from);
   return pointer_delta(from, _heap_base_address, 1) >> CardTable::card_shift();
 }
 
