@@ -69,7 +69,9 @@ void G1HeapRegion::move_free_region() {
 
   assert(new_bottom != nullptr, "SanitizeGC: Failed to allocate memory for G1HeapRegion");
 
-  if (!os::protect_memory((char*) _bottom, GrainBytes, os::MEM_PROT_NONE, true)) {
+  if (os::protect_memory((char*) _bottom, GrainBytes, os::MEM_PROT_NONE, true)) {
+    log_debug(gc, region)("SanitizeGC: Locked memory from %p to %p", _bottom, _bottom + GrainWords);
+  } else {
     log_warning(gc, region)("SanitizeGC: Failed to protect old G1HeapRegion's memory, continuing anyway");
   }
 
@@ -84,19 +86,25 @@ void G1HeapRegion::move_free_region() {
   }
 
   if (!_is_moved) {
-    SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, _bottom);
-    SanitizeGCRegionMaps::original_to_moved->insert(_bottom, new_bottom);
+    bool insertedMto = SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, _bottom);
+    bool insertedOtm = SanitizeGCRegionMaps::original_to_moved->insert(_bottom, new_bottom);
+    assert(insertedMto && insertedOtm, "Some operation(s) failed: insert moved_to_original (%d), insert original_to_moved (%d)", insertedMto, insertedOtm);
     _is_moved = true;
   } else {
     HeapWord* original_bottom = (HeapWord*) SanitizeGCRegionMaps::moved_to_original->remap_address(_bottom);
-    SanitizeGCRegionMaps::moved_to_original->remove(_bottom);
-    SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, original_bottom);
-    SanitizeGCRegionMaps::original_to_moved->update(original_bottom, new_bottom);
+    assert(_bottom != original_bottom && original_bottom != nullptr, "_bottom cannot be the same as original_bottom, when the region was already moved");
+    bool removed = SanitizeGCRegionMaps::moved_to_original->remove(_bottom);
+    bool inserted = SanitizeGCRegionMaps::moved_to_original->insert(new_bottom, original_bottom);
+    bool updated = SanitizeGCRegionMaps::original_to_moved->update(original_bottom, new_bottom);
+    assert(removed && inserted && updated, "Some operation(s) failed: remove (%d), insert (%d), update (%d)", removed, inserted, updated);
+    log_debug(gc, region)("SanitizeGC: The region %d was already moved once before. Original bottom: %p, current bottom: %p, new bottom: %p", _hrm_index, original_bottom, _bottom, new_bottom);
   }
 
   _bottom = new_bottom;
   _top = new_bottom;
   _end = new_end;
+  // setting other fields (e.g. _parsable_bottom) to be in sync
+  hr_clear(false);
 }
 
 class PrintG1HeapRegionInfoClosure : public HeapRegionClosure {
