@@ -26,7 +26,7 @@
  * @test HumongousObjects.java
  * @summary SanitizeGC test for allocating humongous objects.
  * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace -Xint gc.SanitizeGC.HumongousObjects
+ * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.HumongousObjects
  */
 
 package gc.SanitizeGC;

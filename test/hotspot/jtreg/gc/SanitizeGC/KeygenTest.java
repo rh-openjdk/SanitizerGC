@@ -30,16 +30,29 @@
 
 package gc.SanitizeGC;
 
-public class TestSanitizeGC {
-    public static void main(String args[]) {
-        Integer printInt = new Integer(0);
-        for (int i = 0; i < 1000; i++) {
-            Integer j = 123;
-            if (i == 500) {
-                printInt = j;
-            }
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+public class KeygenTest {
+    public static void main(String[] args) {
+        try {
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(2048);
+
+            KeyPair pair = keyGen.generateKeyPair();
+
+            // encode keys in Base64 for printing
+            String publicKey = Base64.getEncoder().encodeToString(pair.getPublic().getEncoded());
+            String privateKey = Base64.getEncoder().encodeToString(pair.getPrivate().getEncoded());
+
+            System.out.println("Public Key:");
+            System.out.println(publicKey);
+            System.out.println("\nPrivate Key:");
+            System.out.println(privateKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
-        System.gc();
-        System.out.println("end " + printInt);
     }
 }

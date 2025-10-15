@@ -26,7 +26,7 @@
  * @test ManyObjects.java
  * @summary SanitizeGC test for allocating many objects.
  * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace -Xint gc.SanitizeGC.ManyObjects
+ * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.ManyObjects
  */
 
 package gc.SanitizeGC;
@@ -39,13 +39,13 @@ import gc.SanitizeGC.SanitizeGCTestObj;
 public class ManyObjects {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("Creating objects that go out of scope immediately.");
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 10_000; i++) {
             SanitizeGCTestObj obj = new SanitizeGCTestObj(1000);
         }
 
         System.out.println("Creating objects to save in a list.");
         List<SanitizeGCTestObj> list = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 10_000; i++) {
             SanitizeGCTestObj obj = new SanitizeGCTestObj(1000);
             list.add(obj);
         }

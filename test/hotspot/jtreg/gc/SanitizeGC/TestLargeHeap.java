@@ -23,23 +23,26 @@
  */
 
 /*
- * @test TestSanitizeGC.java
- * @summary Basic SanitizeGC test.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.TestSanitizeGC
+ * @test TestLargeHeap.java
+ * @summary Basic test with a large java heap.
+ * @build gc.SanitizeGC.SanitizeGCTestObj
+ * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xmx2g -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.TestLargeHeap
  */
 
 package gc.SanitizeGC;
 
-public class TestSanitizeGC {
-    public static void main(String args[]) {
-        Integer printInt = new Integer(0);
-        for (int i = 0; i < 1000; i++) {
-            Integer j = 123;
-            if (i == 500) {
-                printInt = j;
-            }
+import java.util.List;
+import java.util.ArrayList;
+import gc.SanitizeGC.SanitizeGCTestObj;
+
+public class TestLargeHeap {
+    public static void main(String[] args) {
+        System.out.println("Large heap test start.");
+        List<SanitizeGCTestObj> list = new ArrayList<>();
+        for(int i = 0; i < 10_000; i++) {
+            SanitizeGCTestObj obj = new SanitizeGCTestObj(1000);
+            list.add(obj);
         }
-        System.gc();
-        System.out.println("end " + printInt);
+        System.out.println("Large heap test end.");
     }
 }

@@ -23,23 +23,15 @@
  */
 
 /*
- * @test TestSanitizeGC.java
- * @summary Basic SanitizeGC test.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.TestSanitizeGC
+ * @test ShrinkToOneRegion.java
+ * @summary Test to try shrinking the heap to just one region.
+ * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -XX:G1HeapRegionSize=32m -Xmx256m -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.ShrinkToOneRegion
  */
 
 package gc.SanitizeGC;
 
-public class TestSanitizeGC {
-    public static void main(String args[]) {
-        Integer printInt = new Integer(0);
-        for (int i = 0; i < 1000; i++) {
-            Integer j = 123;
-            if (i == 500) {
-                printInt = j;
-            }
-        }
+public class ShrinkToOneRegion {
+    public static void main(String[] args) {
         System.gc();
-        System.out.println("end " + printInt);
     }
 }
