@@ -100,11 +100,15 @@ void G1HeapRegion::move_free_region() {
     log_debug(gc, region)("SanitizeGC: The region %d was already moved once before. Original bottom: %p, current bottom: %p, new bottom: %p", _hrm_index, original_bottom, _bottom, new_bottom);
   }
 
+  assert(_parsable_bottom == _bottom, "SanitizeGC: Parsable bottom should be equal to the old bottom");
+
   _bottom = new_bottom;
   _top = new_bottom;
   _end = new_end;
-  // setting other fields (e.g. _parsable_bottom) to be in sync
-  hr_clear(false);
+
+  // setting parsable bottom and resetting top
+  _parsable_bottom = new_bottom;
+  G1CollectedHeap::heap()->concurrent_mark()->reset_top_at_mark_start(this);
 }
 
 class PrintG1HeapRegionInfoClosure : public HeapRegionClosure {
