@@ -155,6 +155,7 @@ public:
            "Returning result = " PTR_FORMAT " out of bounds of "
            " card marking array's _whole_heap = [" PTR_FORMAT "," PTR_FORMAT ")",
            p2i(result), p2i(_whole_heap.start()), p2i(_whole_heap.end()));
+    SanitizeGCMapper::mapOriginalAddrToNewAddr(result);
     return result;
   }
 
