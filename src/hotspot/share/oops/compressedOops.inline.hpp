@@ -85,12 +85,12 @@ inline oop CompressedOops::decode_raw_not_null(oop v) {
 }
 
 inline oop CompressedOops::decode_not_null(oop v) {
-  assert(Universe::is_in_heap(v) || SanitizeGC, "object not in heap " PTR_FORMAT, p2i(v));
+  assert(Universe::is_in_heap(v), "object not in heap " PTR_FORMAT, p2i(v));
   return v;
 }
 
 inline oop CompressedOops::decode(oop v) {
-  assert(Universe::is_in_heap_or_null(v) || SanitizeGC, "object not in heap " PTR_FORMAT, p2i(v));
+  assert(Universe::is_in_heap_or_null(v), "object not in heap " PTR_FORMAT, p2i(v));
   return v;
 }
 
