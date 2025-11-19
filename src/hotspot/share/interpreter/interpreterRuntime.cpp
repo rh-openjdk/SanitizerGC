@@ -818,7 +818,7 @@ void InterpreterRuntime::resolve_invoke(JavaThread* current, Bytecodes::Code byt
     Symbol* signature = call.signature();
     receiver = Handle(current, last_frame.callee_receiver(signature));
 
-    assert(Universe::heap()->is_in_or_null(receiver()) || SanitizeGC,
+    assert(Universe::heap()->is_in_or_null(receiver()),
            "sanity check");
     assert(receiver.is_null() ||
            !Universe::heap()->is_in(receiver->klass()),
