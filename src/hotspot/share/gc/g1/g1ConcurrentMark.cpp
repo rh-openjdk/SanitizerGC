@@ -1920,6 +1920,7 @@ G1HeapRegion* G1ConcurrentMark::claim_region(uint worker_id) {
     // Above heap_region_containing may return null as we always scan claim
     // until the end of the heap. In this case, just jump to the next region.
     HeapWord* end = curr_region != nullptr ? curr_region->end() : finger + G1HeapRegion::GrainWords;
+    SanitizeGCMapper::mapNewEdgeAddrToOriginalAddr(end);
 
     // Is the gap between reading the finger and doing the CAS too long?
     HeapWord* res = Atomic::cmpxchg(&_finger, finger, end);

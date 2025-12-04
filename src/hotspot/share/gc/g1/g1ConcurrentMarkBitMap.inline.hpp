@@ -34,7 +34,9 @@
 
 inline bool G1CMBitMap::iterate(G1CMBitMapClosure* cl, MemRegion mr) {
   assert(!mr.is_empty(), "Does not support empty memregion to iterate over");
-  assert(_covered.contains(mr),
+  // skipping this assert when SanitizeGC is on
+  // memory region will *probably* be outside of _covered, because it was *probably* moved
+  assert(_covered.contains(mr) || SanitizeGC,
          "Given MemRegion from " PTR_FORMAT " to " PTR_FORMAT " not contained in heap area",
          p2i(mr.start()), p2i(mr.end()));
   HeapWord* end = mr.end();
@@ -47,10 +49,11 @@ inline bool G1CMBitMap::iterate(G1CMBitMapClosure* cl, MemRegion mr) {
 
   while (offset < end_offset) {
     HeapWord* const addr = offset_to_addr(offset);
-    if (!cl->do_addr(addr)) {
+    HeapWord* remappedAddr = (HeapWord*) SanitizeGCMapper::mapOriginalAddrToNewAddrImpl(addr);
+    if (!cl->do_addr(remappedAddr)) {
       return false;
     }
-    size_t const obj_size = cast_to_oop(addr)->size();
+    size_t const obj_size = cast_to_oop(remappedAddr)->size();
     offset = _bm.find_first_set_bit(offset + (obj_size >> _shifter), end_offset);
   }
   return true;
