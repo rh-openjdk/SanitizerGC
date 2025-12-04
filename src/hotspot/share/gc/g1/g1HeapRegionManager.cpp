@@ -115,7 +115,7 @@ G1HeapRegion* HeapRegionManager::allocate_free_region(HeapRegionType type, uint 
     }
   }
 
-  if (SanitizeGC) {
+  if (hr != nullptr && SanitizeGC) {
     // SANITIZER, moving region and printing info
     log_debug(gc, region)("SanitizeGC: Moving region with index: %d (_bottom: %p, _end: %p)", hr->hrm_index(), hr->bottom(), hr->end());
     hr->move_free_region();
