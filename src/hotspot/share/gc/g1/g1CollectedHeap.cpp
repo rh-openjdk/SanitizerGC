@@ -2620,6 +2620,7 @@ void G1CollectedHeap::free_region(G1HeapRegion* hr, FreeRegionList* free_list) {
   assert(_hrm.is_available(hr->hrm_index()), "region should be committed");
   assert(!hr->has_pinned_objects(),
          "must not free a region which contains pinned objects");
+  log_debug(gc, region)("freeing region with index %d (%p - %p)", hr->hrm_index(), hr->bottom(), hr->end());
 
   // Reset region metadata to allow reuse.
   hr->hr_clear(true /* clear_space */);
