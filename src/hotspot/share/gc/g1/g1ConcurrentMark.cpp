@@ -2001,6 +2001,7 @@ void G1ConcurrentMark::verify_no_collection_set_oops() {
   if (global_finger != nullptr && global_finger < _heap.end()) {
     // Since we always iterate over all regions, we might get a null G1HeapRegion
     // here.
+    SanitizeGCMapper::mapOriginalAddrToNewAddr(global_finger);
     G1HeapRegion* global_hr = _g1h->heap_region_containing_or_null(global_finger);
     guarantee(global_hr == nullptr || global_finger == global_hr->bottom(),
               "global finger: " PTR_FORMAT " region: " HR_FORMAT,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -24,9 +24,9 @@
 
 /*
  * @test Multithreading.java
- * @summary SanitizeGC test for a basic multithreading task.
+ * @summary SanitizeGC test for a basic multithreading task of allocating objets.
  * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.Multithreading
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xmx400m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.Multithreading
  */
 
 package gc.SanitizeGC;

@@ -82,6 +82,7 @@ SATBMarkQueue& G1SATBMarkQueueSet::satb_queue_for_thread(Thread* const t) const 
 
 static inline bool requires_marking(const void* entry, G1CollectedHeap* g1h) {
   // Includes rejection of null pointers.
+  SanitizeGCMapper::mapNewAddrToOriginalAddr(entry);
   assert(g1h->is_in_reserved(entry),
          "Non-heap pointer in SATB buffer: " PTR_FORMAT, p2i(entry));
 

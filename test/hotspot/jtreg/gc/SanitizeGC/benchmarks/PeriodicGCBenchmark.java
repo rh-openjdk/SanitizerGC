@@ -23,28 +23,37 @@
  */
 
 /*
- * @test TestSmallHeap.java
- * @summary Basic test with a very small java heap (20M). It allocates quite a lot of objects in it.
- * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xmx20m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.TestSmallHeap
+ * @test PeriodicGCBenchmark.java
+ * @summary Simple object GC stress test.
+ * @build gc.SanitizeGC.benchmarks.SanitizeGCTestObj
+ * @run main/othervm/timeout=300 -XX:+UseG1GC -XX:+SanitizeGC -Xmx400m -XX:G1PeriodicGCInterval=100 -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.benchmarks.PeriodicGCBenchmark
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.benchmarks;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.lang.ref.WeakReference;
 import gc.SanitizeGC.SanitizeGCTestObj;
 
-public class TestSmallHeap {
+public class PeriodicGCBenchmark {
     public static void main(String[] args) {
-        System.out.println("Small heap test start.");
-        for (int i = 0; i < 20; i++) {
-            List<SanitizeGCTestObj> list = new ArrayList<>();
-             for(int j = 0; j < 10_000; j++) {
-                 SanitizeGCTestObj obj = new SanitizeGCTestObj(1000);
-                  list.add(obj);
-             }
+        System.out.println("Starting periodic GC benchmark, it should trigger a GC every 100 milliseconds.");
+
+        try {
+            for (int i = 0; i < 25_000; i++) {
+                // allocate a lot of short-lived objects
+                List<SanitizeGCTestObj> list = new ArrayList<>();
+                for(int j = 0; j < 1000; j++) {
+                    SanitizeGCTestObj obj = new SanitizeGCTestObj(1024);
+                    list.add(obj);
+                }
+                if (i % 10 == 0) {
+                    System.out.println("Iteration: " + i);
+                }
+            }
+        } catch (OutOfMemoryError e) {
+            System.out.println("Out of memory.");
         }
-        System.out.println("Small heap test end.");
     }
 }

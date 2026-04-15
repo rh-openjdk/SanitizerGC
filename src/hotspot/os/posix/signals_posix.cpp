@@ -1192,6 +1192,11 @@ void os::print_siginfo(outputStream* os, const void* si0) {
     os->print(", si_band: %ld", (long) si->si_band);
 #endif
   }
+
+  // The code "2" represents access error to memory, which is the exact thing SanitizeGC is trying to catch.
+  if (SanitizeGC && si->si_code == 2) {
+    os->print("\nSanitizeGC: This was probably caused by trying to dereference a pointer into locked memory.");
+  }
 }
 
 bool os::signal_thread(Thread* thread, int sig, const char* reason) {

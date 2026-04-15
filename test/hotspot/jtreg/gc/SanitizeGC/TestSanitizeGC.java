@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -24,22 +24,20 @@
 
 /*
  * @test TestSanitizeGC.java
- * @summary Basic SanitizeGC test.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.TestSanitizeGC
+ * @summary Basic SanitizeGC test testing if it works on a simple program.
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.TestSanitizeGC
  */
 
 package gc.SanitizeGC;
 
 public class TestSanitizeGC {
     public static void main(String args[]) {
-        Integer printInt = new Integer(0);
+        System.out.println("Testing if SanitizeGC changes work with a simple program.");
+        int[][] array = new int[1000][];
         for (int i = 0; i < 1000; i++) {
-            Integer j = 123;
-            if (i == 500) {
-                printInt = j;
-            }
+            array[i] = new int[100];
         }
         System.gc();
-        System.out.println("end " + printInt);
+        System.out.println("End of the test.");
     }
 }

@@ -199,7 +199,9 @@ inline void G1HeapRegion::reset_after_full_gc_common() {
 
   // Clear unused heap memory in debug builds.
   if (ZapUnusedHeapArea) {
-    mangle_unused_area();
+    if (!SanitizeGC || !_is_uncommited) {
+      mangle_unused_area();
+    }
   }
 }
 

@@ -162,6 +162,11 @@ GCArguments* GCConfig::select_gc() {
     vm_exit_during_initialization("Multiple garbage collectors selected", nullptr);
   }
 
+  if (SanitizeGC && !UseG1GC) {
+    vm_exit_during_initialization("SanitizeGC requires G1 GC to be selected, please select it manually with -XX:+UseG1GC",
+      nullptr);
+  }
+
   // Exactly one GC selected
   FOR_EACH_INCLUDED_GC(gc) {
     if (gc->_flag) {

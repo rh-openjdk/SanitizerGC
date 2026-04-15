@@ -283,13 +283,7 @@ void G1BarrierSetAssembler::g1_write_barrier_post(MacroAssembler* masm,
   Label done;
   Label runtime;
 
-  if (SanitizeGC) {
-    RegSet exclude_set = RegSet::of(store_addr);
-    __ push_call_clobbered_registers_except(exclude_set);
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddrImpl), store_addr);
-    __ movptr(store_addr, rax);
-    __ pop_call_clobbered_registers_except(exclude_set);
-  }
+  MacroAssemblerMapNewAddrToOriginalAddr(store_addr);
 
   // Does store cross heap regions?
 
@@ -545,13 +539,7 @@ void G1BarrierSetAssembler::generate_c1_post_barrier_runtime_stub(StubAssembler*
 
   __ load_parameter(0, card_addr);
 
-  if (SanitizeGC) {
-    RegSet exclude_set = RegSet::of(card_addr);
-    __ push_call_clobbered_registers_except(exclude_set);
-    __ call_VM_leaf(CAST_FROM_FN_PTR(address, SanitizeGCMapper::mapNewAddrToOriginalAddrImpl), card_addr);
-    __ movptr(card_addr, rax);
-    __ pop_call_clobbered_registers_except(exclude_set);
-  }
+  MacroAssemblerMapNewAddrToOriginalAddr(card_addr);
 
   __ shrptr(card_addr, CardTable::card_shift());
   // Do not use ExternalAddress to load 'byte_map_base', since 'byte_map_base' is NOT

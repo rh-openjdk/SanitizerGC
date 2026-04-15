@@ -44,7 +44,13 @@ inline HeapWord* MarkBitMap::get_next_marked_addr(const HeapWord* addr,
   size_t const nextOffset = _bm.find_first_set_bit(addr_offset, limit_offset);
 
   HeapWord* next_addr = offset_to_addr(nextOffset);
-  SanitizeGCMapper::mapOriginalEdgeAddrToNewAddr(next_addr);
+  // Adding this condition since edge address remapping of the bottom address
+  // of a heap region might lead to the end address of the previous region.
+  if (next_addr == addr) {
+    SanitizeGCMapper::mapOriginalAddrToNewAddr(next_addr);
+  } else {
+    SanitizeGCMapper::mapOriginalEdgeAddrToNewAddr(next_addr);
+  }
   return next_addr;
 }
 

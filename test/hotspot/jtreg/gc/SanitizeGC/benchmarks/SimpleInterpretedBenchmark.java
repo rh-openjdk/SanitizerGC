@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026, IBM.
+ * Copyright (c) 2025, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,28 +23,32 @@
  */
 
 /*
- * @test TestLargeHeap.java
- * @summary Basic test with a very large java heap (4G). It allocates a lot of large objects in it.
- * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xmx4g -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.TestLargeHeap
+ * @test SimpleInterpretedBenchmark.java
+ * @summary Simple GC stress test.
+ * @run main/othervm/timeout=300 -XX:+UseG1GC -XX:+SanitizeGC -Xmx400m -Xint -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.benchmarks.SimpleInterpretedBenchmark
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.benchmarks;
 
-import java.util.List;
-import java.util.ArrayList;
-import gc.SanitizeGC.SanitizeGCTestObj;
-
-public class TestLargeHeap {
+public class SimpleInterpretedBenchmark {
     public static void main(String[] args) {
-        System.out.println("Large heap test start.");
-        for (int i = 0; i < 5; i++) {
-            List<SanitizeGCTestObj> list = new ArrayList<>();
-             for(int j = 0; j < 10_000; j++) {
-                 SanitizeGCTestObj obj = new SanitizeGCTestObj(100_000);
-                  list.add(obj);
-             }
+        System.out.println("Starting simple GC benchmark in the interpreted mode.");
+
+        long counter = 0;
+        try {
+            for (int i = 0; i < 25_000; i++) {
+                // allocate a lot of short-lived objects
+                byte[][] data = new byte[1024][];
+                for (int j = 0; j < data.length; j++) {
+                    data[j] = new byte[1024];
+                }
+                counter++;
+                if (counter % 10 == 0) {
+                    System.out.println("Iteration: " + counter);
+                }
+            }
+        } catch (OutOfMemoryError e) {
+            System.out.println("Out of memory after " + counter + " iterations.");
         }
-        System.out.println("Large heap test end.");
     }
 }

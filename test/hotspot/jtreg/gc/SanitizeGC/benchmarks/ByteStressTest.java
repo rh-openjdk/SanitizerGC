@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019, 2026, Oracle and/or its affiliates and IBM.
+ * Copyright (c) 2025, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,15 +23,32 @@
  */
 
 /*
- * @test ShrinkToOneRegion.java
- * @summary Test to try shrinking the heap to just one region. Based on: test/hotspot/jtreg/gc/g1/TestShrinkToOneRegion.java
- * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -XX:G1HeapRegionSize=32m -Xmx256m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.ShrinkToOneRegion
+ * @test ByteStressTest.java
+ * @summary A GC stress test allocating a lot of byte arrays.
+ * @run main/othervm/timeout=300 -XX:+UseG1GC -XX:+SanitizeGC -Xmx400m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.benchmarks.ByteStressTest
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.benchmarks;
 
-public class ShrinkToOneRegion {
+public class ByteStressTest {
     public static void main(String[] args) {
-        System.gc();
+        System.out.println("Starting a byte-based GC stress test.");
+
+        long counter = 0;
+        try {
+            for (int i = 0; i < 25_000; i++) {
+                // allocate a lot of short-lived byte arrays
+                byte[][] data = new byte[1024][];
+                for (int j = 0; j < data.length; j++) {
+                    data[j] = new byte[1024];
+                }
+                counter++;
+                if (counter % 10 == 0) {
+                    System.out.println("Iteration: " + counter);
+                }
+            }
+        } catch (OutOfMemoryError e) {
+            System.out.println("Out of memory after " + counter + " iterations.");
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019, 2026, Oracle and/or its affiliates and IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,15 +23,28 @@
  */
 
 /*
- * @test ShrinkToOneRegion.java
- * @summary Test to try shrinking the heap to just one region. Based on: test/hotspot/jtreg/gc/g1/TestShrinkToOneRegion.java
- * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -XX:G1HeapRegionSize=32m -Xmx256m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.ShrinkToOneRegion
+ * @test TestEarlyExit.java
+ * @summary THIS TEST SHOULD FAIL! Basic early exit test using System.exit() with random exit code.
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.shouldfail.TestEarlyExit
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.shouldfail;
 
-public class ShrinkToOneRegion {
+public class TestEarlyExit {
     public static void main(String[] args) {
-        System.gc();
+        byte[] data1 = new byte[1024];
+        byte[] data2 = new byte[1024];
+        byte[] data3 = new byte[1024];
+        byte[] data4 = new byte[1024];
+        byte[] data5 = new byte[1024];
+
+        System.exit(67);
+
+        // never reached
+        byte[] data6 = new byte[1024];
+        byte[] data7 = new byte[1024];
+        byte[] data8 = new byte[1024];
+        byte[] data9 = new byte[1024];
+        byte[] data0 = new byte[1024];
     }
 }

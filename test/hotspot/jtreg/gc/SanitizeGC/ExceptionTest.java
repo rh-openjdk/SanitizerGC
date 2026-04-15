@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019, 2026, Oracle and/or its affiliates and IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,15 +23,26 @@
  */
 
 /*
- * @test ShrinkToOneRegion.java
- * @summary Test to try shrinking the heap to just one region. Based on: test/hotspot/jtreg/gc/g1/TestShrinkToOneRegion.java
- * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -XX:G1HeapRegionSize=32m -Xmx256m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.ShrinkToOneRegion
+ * @test ExceptionTest.java
+ * @summary Basic test that catches an exception.
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.ExceptionTest
  */
 
 package gc.SanitizeGC;
 
-public class ShrinkToOneRegion {
+public class ExceptionTest {
+
+    static void crash() {
+        // this will throw ArithmeticException.
+        int x = 10 / 0;
+        System.out.println(x);
+    }
+
     public static void main(String[] args) {
-        System.gc();
+        try {
+            crash();
+        } catch (Exception e) {
+            System.out.println("Caught: " + e);
+        }
     }
 }

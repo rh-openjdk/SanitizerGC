@@ -1422,8 +1422,11 @@ void Arguments::set_use_compressed_oops() {
   size_t max_heap_size = MAX3(MaxHeapSize, InitialHeapSize, MinHeapSize);
 
   if (max_heap_size <= max_heap_for_compressed_oops()) {
-    if (FLAG_IS_DEFAULT(UseCompressedOops)) {
+    if (FLAG_IS_DEFAULT(UseCompressedOops) && !SanitizeGC) {
       FLAG_SET_ERGO(UseCompressedOops, true);
+    } else {
+      // If SanitizeGC is on, compressed oops will be turned off.
+      FLAG_SET_ERGO(UseCompressedOops, false);
     }
   } else {
     if (UseCompressedOops && !FLAG_IS_DEFAULT(UseCompressedOops)) {
@@ -1861,6 +1864,13 @@ bool Arguments::check_vm_args_consistency() {
                 "-XX:+VerifyHeavyMonitors requires LockingMode == 0 (LM_MONITOR)\n");
     return false;
   }
+
+  if (SanitizeGC && UseCompressedOops) {
+    jio_fprintf(defaultStream::error_stream(),
+                "SanitizeGC cannot run with compressed oops, please turn them off\n");
+    return false;
+  }
+
   return status;
 }
 

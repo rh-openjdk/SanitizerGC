@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,10 +23,10 @@
  */
 
 /*
- * @test HumongousObjects.java
- * @summary SanitizeGC test for allocating humongous objects.
+ * @test OnlyHumongousObjects.java
+ * @summary SanitizeGC test for allocating ONLY 5 humongous objects, this should work, as no other objects are allocated.
  * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.HumongousObjects
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -XX:G1HeapRegionSize=2m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.OnlyHumongousObjects
  */
 
 package gc.SanitizeGC;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import gc.SanitizeGC.SanitizeGCTestObj;
 
-public class HumongousObjects {
+public class OnlyHumongousObjects {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("Creating humongous objects.");
         List<SanitizeGCTestObj> list = new ArrayList<>();

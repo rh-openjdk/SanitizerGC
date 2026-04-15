@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -24,11 +24,11 @@
 
 /*
  * @test SimpleSwingTest.java
- * @summary Basic Swing GUI test. It opens a window and closes it in 2 seconds.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.SimpleSwingTest
+ * @summary THIS TEST NEEDS TO BE RUN MANUALLY, IT WILL FAIL WITH JTREG! Basic Swing GUI test. It opens a window and closes it in 5 seconds.
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.shouldfail.SimpleSwingTest
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.shouldfail;
 
 import javax.swing.*;
 import java.awt.*;

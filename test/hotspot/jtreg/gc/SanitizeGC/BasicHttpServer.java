@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -24,8 +24,8 @@
 
 /*
  * @test BasicHttpServer.java
- * @summary Basic HTTP server test.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.BasicHttpServer
+ * @summary Testing a basic HTTP server functionality.
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.BasicHttpServer
  */
 
 package gc.SanitizeGC;
@@ -40,7 +40,7 @@ import java.lang.AssertionError;
 
 public class BasicHttpServer {
     public static void main(String[] args) throws IOException {
-        // create a server on port 8998
+        // create a basic server on port 8998
         HttpServer server = HttpServer.create(new InetSocketAddress(8998), 0);
         server.createContext("/", new ResponseHandler());
         server.setExecutor(null);

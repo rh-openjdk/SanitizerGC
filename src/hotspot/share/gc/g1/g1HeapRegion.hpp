@@ -74,6 +74,7 @@ class G1HeapRegion : public CHeapObj<mtGC> {
   HeapWord* _end;
 
   bool _is_moved;
+  bool _is_uncommited;
 
   HeapWord* volatile _top;
 
@@ -121,6 +122,8 @@ public:
   size_t free() const { return byte_size(top(), end()); }
 
   bool is_empty() const { return used() == 0; }
+
+  void set_uncommited(bool uncommited) { _is_uncommited = uncommited; }
 
 private:
 

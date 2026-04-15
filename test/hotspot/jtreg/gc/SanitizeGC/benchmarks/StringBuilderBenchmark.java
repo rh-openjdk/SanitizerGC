@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, IBM.
+ * Copyright (c) 2026, IBM.
  *
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -23,32 +23,31 @@
  */
 
 /*
- * @test SimpleStressTest.java
- * @summary Simple GC stress test.
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.SimpleStressTest
+ * @test StringBuilderBenchmark.java
+ * @summary A benchmark that creates strings using a StringBuilder.
+ * @run main/othervm/timeout=300 -XX:+UseG1GC -XX:+SanitizeGC -Xmx400m -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.benchmarks.StringBuilderBenchmark
  */
 
-package gc.SanitizeGC;
+package gc.SanitizeGC.benchmarks;
 
-public class SimpleStressTest {
-    public static void main(String[] args) {
-        System.out.println("Starting simple GC stress test.");
+public class StringBuilderBenchmark {
+    public static void main(String[] args) throws Exception {
+        System.out.println("Starting a string builder benchmark.");
 
-        long counter = 0;
         try {
-            for (int i = 0; i < 10_000; i++) {
-                // allocate a lot of short-lived objects
-                byte[][] data = new byte[1024][];
-                for (int j = 0; j < data.length; j++) {
-                    data[j] = new byte[1024];
+            for (int i = 0; i < 30_000; i++) {
+                // create a StringBuilder and add characters to it
+                StringBuilder sb = new StringBuilder();
+                for (int j = 0; j < 30_000 - i; j++) {
+                    sb.append("A");
                 }
-                counter++;
-                if (counter % 10 == 0) {
-                    System.out.println("Iteration: " + counter);
+
+                if (i % 10 == 0) {
+                    System.out.printf("Iteration: %d | String length: %d\n", i, sb.toString().length());
                 }
             }
         } catch (OutOfMemoryError e) {
-            System.out.println("Out of memory after " + counter + " iterations.");
+            System.out.println("Out of memory.");
         }
     }
 }

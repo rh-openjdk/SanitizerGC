@@ -26,7 +26,7 @@
  * @test ManyObjects.java
  * @summary SanitizeGC test for allocating many objects.
  * @build gc.SanitizeGC.SanitizeGCTestObj
- * @run main/othervm -XX:-UseCompressedOops -XX:-UseCompressedClassPointers -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+remset=trace,gc+refine=trace,gc+barrier=trace,gc+phases=trace,gc+task=debug,gc+verify=debug,gc+region=trace gc.SanitizeGC.ManyObjects
+ * @run main/othervm -XX:+UseG1GC -XX:+SanitizeGC -Xlog:gc+phases=debug,gc+task=debug,gc+region=trace gc.SanitizeGC.ManyObjects
  */
 
 package gc.SanitizeGC;
